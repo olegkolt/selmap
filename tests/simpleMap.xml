@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Map>
+	<Table Name="order">
+		<Field Name="status" />
+		<Field Name="date" />
+		<Field Name="comment" />
+		<Field Name="id">
+			<Table Name="order_product" On="order">
+				<Field Name="count" />
+				<Field Name="product">
+					<Table Name="product" On="id">
+						<Field Name="name" />
+						<Field Name="number" />
+					</Table>
+				</Field>
+			</Table>
+		</Field>
+	</Table>
+</Map>

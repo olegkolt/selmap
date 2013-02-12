@@ -1,0 +1,10 @@
+{
+    "Equal": "=",
+    "NotEqual": "!=",
+    "Like": "LIKE",
+    "NotLike": "NOT LIKE",
+    "Greater": ">",
+    "GreaterOrEqual": ">=",
+    "Less": "<",
+    "LessOrEqual": "<="
+}

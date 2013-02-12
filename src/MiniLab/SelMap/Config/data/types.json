@@ -1,0 +1,8 @@
+{
+    "boolean": "Bool",
+    "varchar": "String",
+    "int": "Int",
+    "date": "Date",
+    "datetime": "DateTime",
+    "text": "String"
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataBase>
+    <Table Name="order">
+        <Field Name="id" Type="int" PKey="true" />
+        <Field Name="status" Type="int" />
+        <Field Name="date" Type="date" />
+        <Field Name="comment" Type="varchar" />
+    </Table>
+    <Table Name="order_product">
+        <Field Name="id" Type="int" PKey="true" />
+        <Field Name="count" Type="int" />
+        <Field Name="order" Type="int" FTable="order" />
+        <Field Name="product" Type="int" FTable="product" />
+    </Table>
+    <Table Name="product">
+        <Field Name="id" Type="int" PKey="true" />
+        <Field Name="name" Type="varchar" />
+        <Field Name="number" Type="varchar" />
+    </Table>
+</DataBase>

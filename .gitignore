@@ -1,0 +1,7 @@
+vendor
+docs
+.settings
+.project
+.buildpath
+selmap.php
+composer.lock
