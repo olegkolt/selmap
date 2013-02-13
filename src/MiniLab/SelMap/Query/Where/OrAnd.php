@@ -11,6 +11,7 @@ use MiniLab\SelMap\Config\Config;
  *
  * @author Oleg Koltunov <olegkolt@mail.ru>
  * @property-read Where $where
+ * 
  */
 class OrAnd {
     protected $type;
@@ -98,15 +99,24 @@ class OrAnd {
     }
     public function addIsNullCase(Path $path)
     {
-    
+        $this->values[] = "`{" . $path . "}` IS NULL";
+        return $this;
     }
     public function addIsNotNullCase(Path $path)
     {
-    
+        $this->values[] = "`{" . $path . "}` IS NOT NULL";
+        return $this;
     }
     protected function addComparisonCase($operator, $value, Path $path)
     {
-        $p = $this->where->map->find($path);
+        $fieldName = substr($path->last(), 1);
+        $field = $this->where->map->find($path);
+        $tableFields = $field->node->table->fields;
+        if(!isset($tableFields[$fieldName])) {
+            throw new \Exception("Field not found");
+        }
+        $type = DataBase::CELL_TYPES_NAMESPACE . $tableFields[$fieldName]->type;
+        $value = $type::input($value);
         $this->values[] = "`{" . $path . "}` " . $operator . " " . $value;
         return $this;
     }

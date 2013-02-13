@@ -1,6 +1,5 @@
 vendor
 docs
-phpunit
 .settings
 .project
 .buildpath

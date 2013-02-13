@@ -70,12 +70,61 @@ class DefaultTest extends \PHPUnit_Framework_TestCase
         }
         
         $expected = array ( 'comment' => 'Первый заказ',
-                'date' => '2013-02-08',
+                'date' => new \DateTime('2013-02-08'),
                 'rows' => array (
-                        0 => array ( 'id' => '3', 'number' => '12', 'name' => 'Советский флаг', 'count' => '2', ),
-                        1 => array ( 'id' => '4', 'number' => '147', 'name' => 'Бюст Ленина', 'count' => '4', ),
+                        0 => array ( 'id' => 3, 'number' => '12', 'name' => 'Советский флаг', 'count' => 2, ),
+                        1 => array ( 'id' => 4, 'number' => '147', 'name' => 'Бюст Ленина', 'count' => 4, ),
                 ),
         );
         $this->assertEquals($expected, $result);
+        
+        $count = $ds->find(new Path("@id/order_product:order/@@current/@count"))->value;
+        
+        $this->assertInternalType("int", $count, "Count type must be int");
+    }
+    protected function selectFirstOrder()
+    {
+        $map = $this->db->createMap()->addTable("order")->addAllFields()->map;
+        $ds = new DataStruct($map);
+        $ds->selectById(1);
+        return $ds;
+    }
+    public function testDataTypes()
+    {
+        $ds = $this->selectFirstOrder();
+        $status = $ds->find(new Path("@status"))->value;
+        $this->assertInternalType("int", $status, "Status type must be int");
+        $date = $ds->find(new Path("@date"))->value;
+        $this->assertInstanceOf("\\DateTime", $date, "Date must be instance of DateTime");
+    }
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testDataTypeExceptions()
+    {
+        $ds = $this->selectFirstOrder();
+        
+        $date = $ds->find(new Path("@date"));
+        $date->value = "2013-02-08";
+    }
+    public function testPaged()
+    {
+        $itemsCount = 10;
+        $map = $this->db->createMap()->addTable("product")->addAllFields()->map;
+        $ds = new DataStruct($map);
+        $ds->itemsPerPage = $itemsCount;
+        $ds->select(null, 1);
+        $this->assertEquals($itemsCount, count($ds->row));
+    }
+    public function testPagedBranched()
+    {
+        $itemsCount = 5;
+        $reader = new XmlReader($this->db);
+        $map = $reader->readMap(XmlReader::readXmlFile(__DIR__ . "/simpleMap.xml"));
+        
+        $ds = new DataStruct($map);
+        $ds->itemsPerPage = $itemsCount;
+        $ds->select(null, 1);
+        $this->assertEquals($itemsCount, count($ds->row));
     }
 }

@@ -86,9 +86,9 @@ class XmlReader
                         $fTableName = $xField->getAttribute("Inherite");
                         $this->db->createInheriteRel($tableName, $currentField, $fTableName);
                     }
-                    if ($xField->hasAttribute("CellType")) {
-                        $type = $xField->getAttribute("CellType");
-                        $this->db->getTable($tableName)->setCellType($currentField, $type);
+                    if ($xField->hasAttribute("Type")) {
+                        $type = $xField->getAttribute("Type");
+                        $this->db->getTable($tableName)->fields[$currentField]->setType($type);
                     }
                 }
             }

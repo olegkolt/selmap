@@ -22,6 +22,8 @@ class DataBase {
     protected $queryLog;
     protected $useTransactions = false;
     protected $transactionId;
+    
+    const CELL_TYPES_NAMESPACE = "MiniLab\\SelMap\\Data\\CellTypes\\";
 
     public function __construct() {
         $this->tables = array();

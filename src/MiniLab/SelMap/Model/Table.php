@@ -7,10 +7,10 @@ use MiniLab\SelMap\DataBase;
 /**
  *
  * @author Oleg Koltunov <olegkolt@mail.ru>
- * @property-read array    $fields Table fields
+ * @property-read array    $fields    Table fields
  * @property-read Field    $pKeyField Primary key
- * @property-read Table    $name Table name
- * @property-read DataBase $db DataBase object
+ * @property-read Table    $name      Table name
+ * @property-read DataBase $db        DataBase object
  *
  */
 class Table implements \JsonSerializable
@@ -19,7 +19,6 @@ class Table implements \JsonSerializable
     protected $name;
     protected $pKeyField;
     protected $db;
-    protected $cellTypes;
     public function __construct(DataBase $db, $name, array $fields, $pKeyFieldName)
     {
         $this->db = $db;
@@ -47,28 +46,6 @@ class Table implements \JsonSerializable
     {
         $query = "DELETE FROM `" . $this->name . "` WHERE `" . $this->pKeyField . "` = '" . $pKey . "'";
         $this->db->execNonResult($query);
-    }
-    /**
-     * 'Cell' for default
-     * 
-     * @param  string $fieldName
-     * @return string object name
-     */
-    public function getCellType($fieldName)
-    {
-        if(isset($this->cellTypes[$fieldName])) {
-            return $this->cellTypes[$fieldName];
-        }
-        return "Cell";
-    }
-    /**
-     *
-     * @param string $fieldName
-     * @param string $type
-     */
-    public function setCellType($fieldName, $type)
-    {
-        $this->cellTypes[$fieldName] = $type;
     }
     public function jsonSerialize()
     {

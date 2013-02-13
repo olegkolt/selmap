@@ -5,12 +5,13 @@ namespace MiniLab\SelMap\Model;
 /**
  *
  * @author Oleg Koltunov <olegkolt@mail.ru>
- * @property-read array $rel  Field relations
- * @property-read Field $name Field name
- * 
+ * @property-read array  $rel  Field relations
+ * @property-read string $name Field name
+ * @property-read string $type Type name. "Cell" is default
  */
 class Field implements \JsonSerializable
 {
+    protected $type = "Cell";
     protected $name;
     protected $rel = array();
     public function __construct($name)
@@ -30,13 +31,21 @@ class Field implements \JsonSerializable
      */
     public function __get($name)
     {
-        $props = array("rel", "name");
+        $props = array("rel", "name", "type");
         if (in_array($name, $props)) {
             return $this->$name;
         }
     }
+    /**
+     * 
+     * @param string $type Type name from namespace MiniLab\SelMap\Data\CellTypes (String, Int, etc.)
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+    }
     public function jsonSerialize()
     {
-        return $this->name;
+        return $this->type . ": " . $this->name;
     }
 }

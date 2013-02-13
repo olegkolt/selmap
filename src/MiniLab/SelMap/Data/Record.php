@@ -3,6 +3,7 @@
 namespace MiniLab\SelMap\Data;
 
 use MiniLab\SelMap\Model\Table;
+use MiniLab\SelMap\DataBase;
 //use MiniLab\SelMap\Data\Cell;
 
 /**
@@ -63,9 +64,11 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable {
     public function addModified($fieldName) {
         $this->modified[$fieldName] = true;
     }
-    protected function createCell($value, $fieldName) {
-        $type = "MiniLab\\SelMap\\Data\\" . $this->table->getCellType($fieldName);
-        return new $type($value, $this, $fieldName);
+    protected function createCell($value, $fieldName)
+    {
+        $field = $this->table->fields[$fieldName];
+        $type = DataBase::CELL_TYPES_NAMESPACE . $field->type;
+        return new $type($value, $this, $field);
     }
     public function offsetSet($offset, $value) {
         if (is_null($offset)) {

@@ -6,7 +6,7 @@ use MiniLab\SelMap\Path\Path;
 use MiniLab\SelMap\Query\QueryMap;
 use MiniLab\SelMap\Path\PathNodeType;
 use MiniLab\SelMap\Data\Record;
-use MiniLab\SelMap\Data\NullCell;
+use MiniLab\SelMap\Data\EmptyCell;
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\Query\Where\OrAnd;
 use MiniLab\SelMap\Query\Where\Where;
@@ -60,11 +60,11 @@ class DataStruct extends DataStructBase {
         }
     }
     /**
-     * Search with respect to the subject. Returns NullCell if seach failed
+     * Search with respect to the subject. Returns EmptyCell if seach failed
      * 
-     * @param mixed $subject Record, array or Cell
-     * @param Path $path
-     * @return Cell|Record|array|NullCell
+     * @param  Record|array|Cell $subject Record, array or Cell
+     * @param  Path              $path
+     * @return Cell|Record|array|EmptyCell
      */
     public static function &search($subject, Path $path) {
         //echo $path . "<br /";
@@ -76,7 +76,7 @@ class DataStruct extends DataStructBase {
                 unset($rec);
                 if ($el == "@@current") {
                     if (!($rec = current($next))) {
-                        $f = new NullCell();
+                        $f = new EmptyCell();
                         return $f;
                     }
                 } else {
@@ -94,12 +94,12 @@ class DataStruct extends DataStructBase {
                             }
                         }
                         if(!$f) {
-                            $f = new NullCell();
+                            $f = new EmptyCell();
                             return $f;
                         }
                     } else {
                         if (!isset($next[$m]) || !($rec = $next[$m])) {
-                            $f = new NullCell();
+                            $f = new EmptyCell();
                             return $f;
                         }
                     }
@@ -107,7 +107,7 @@ class DataStruct extends DataStructBase {
             } elseif ($el->getType() == PathNodeType::FIELD) {
                 $el = substr($el, 1);
                 if (!isset($rec[$el])) {
-                    $f = new NullCell();
+                    $f = new EmptyCell();
                     return $f;
                 }
                 $rec = & $rec[$el];
@@ -115,7 +115,7 @@ class DataStruct extends DataStructBase {
 
             } elseif ($el->getType() == PathNodeType::RELATION) {
                 if (!isset($rec->rel[(string)$el])) {
-                    $f = new NullCell();
+                    $f = new EmptyCell();
                     return $f;
                 }
                 $rec = & $rec->rel[(string)$el];
@@ -198,6 +198,15 @@ class DataStruct extends DataStructBase {
         ksort($selectOrder);
         return "ORDER BY " . implode(", ", $selectOrder);
     }
+    /**
+     * 
+     * @param array      $queryParts
+     * @param Where|null $where
+     * @param string     $order
+     * @param int|false  $pageNo
+     * @param bool       $noSupply
+     * @return null|Where
+     */
     protected function preliminarySelect(array $queryParts, $where, $order, $pageNo, $noSupply = false) {
         $limit = "";
         if ($pageNo !== false) {
@@ -206,61 +215,66 @@ class DataStruct extends DataStructBase {
             $limit = "LIMIT " . $start . ", " . $this->itemsPerPage;
         }
         $pKey = (string)$this->map->root->table->pKeyField;
-        $query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `" . $this->map->root->aliasName . "`.`" . $pKey . "` " . $queryParts["from"] . $queryParts["join"] . $where . " " . $order . " " . $limit;
+        if($where instanceof Where) {
+            $sqlWhere = "WHERE " . $where->getSQL();
+        } else {
+            $sqlWhere = "";
+        }
+        $query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `" . $this->map->root->aliasName . "`.`" . $pKey . "` " . $queryParts["from"] . $queryParts["join"] . $sqlWhere . " " . $order . " " . $limit;
         if ($result = $this->db->exec($query)) {
-            $newWhere = new Where($this->map);
-            $or = new OrAnd("OR", $this->db, $newWhere);
+            $newWhere = $this->map->createWhere();
+            $or = $newWhere->addOrAnd("OR");//new OrAnd("OR", $this->db, $newWhere);
             while ($row = $result->fetch_assoc()) {
                 $or->addEqualCase($row[$pKey], new Path("@" . $pKey));
             }
             if ($noSupply) {
-                $where = "(" . substr($where, 6) . ")";
-                $and = new OrAnd($this->db, "AND");
-                echo "not ready";
-                die();
+                //$where = "(" . substr($where, 6) . ")";
+                $and = new OrAnd("AND", $this->db, $where);
                 $and->addCase($or);
-                $and->addCase($where);
+                $and->addCase($where->root);
                 $newWhere->root = $and;
             } else {
                 $newWhere->root = $or;
             }
             $result->free();
         } else {
-            return "";
+            return null;
         }
         $this->selectFoundRows();
-        return "WHERE " . $newWhere->getSQL();
+        return $newWhere;
     }
     /**
      * Select one record and relations by record id
+     * 
      * @param int $id Root table id
      */
     public function selectById($id){
         $pk = $this->map->root->table->pKeyField;
-        $this->select(sprintf("WHERE `{@%s}` = '%d'", $pk, $id));
+        $where = $this->map->createWhere()->addOrAnd()->addEqualCase($id, new Path("@" . $pk))->where;
+        $this->select($where);
     }
     /**
-     *
      * Do selection
-     * @param string|Where $where       string or Where
-     * @param int          $pageNo      First page is 1
-     * @param bool         $countResult
-     * @param bool         $noSupply
+     * 
+     * @param Where|null $where
+     * @param int|false  $pageNo      First page is 1. Default 'false'
+     * @param bool       $countResult Default 'false'
+     * @param bool       $noSupply    Default 'false'
+     * @return void
      */
-    public function select($where = "", $pageNo = false, $countResult = false, $noSupply = false) {
+    public function select($where = null, $pageNo = false, $countResult = false, $noSupply = false) {
         $this->pagesCount = 0;
         $this->itemsCount = 0;
         $limit = "";
         $this->table = array();
         $this->row = array();
         $queryParts = $this->map->getSelectSQL();
-        if ($where instanceof Where) {
-            $where = "WHERE " . $where->getSQL();
-        } else {
-            $where = $this->map->queryReadPaths($where);
+        
+        if (!($where instanceof Where) && !is_null($where)) {
+            throw new \InvalidArgumentException("\$where must be instance of 'Where' or null");
         }
         $order = $this->orderPrepare($queryParts["selectOrder"]);
-        if ($queryParts["hasBranching"] && ($where != "" || $pageNo !== false)) {
+        if ($queryParts["hasBranching"] && (!is_null($where) || $pageNo !== false)) {
             $where = $this->preliminarySelect($queryParts, $where, $order, $pageNo, $noSupply);
             if ($this->itemsCount == 0) {
                 return;
@@ -270,6 +284,11 @@ class DataStruct extends DataStructBase {
             $pageNo--;
             $start = $pageNo * $this->itemsPerPage;
             $limit = "LIMIT " . $start . ", " . $this->itemsPerPage;
+        }
+        if($where instanceof Where) {
+            $where = "WHERE " . $where->getSQL();
+        } else {
+            $where = "";
         }
         $query = "SELECT ";
         if ($countResult) {
