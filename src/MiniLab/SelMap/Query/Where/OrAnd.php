@@ -81,6 +81,17 @@ class OrAnd {
         $this->values[] = $orAnd;
         return $orAnd;
     }
+    /**
+     * Add OrAnd instance
+     * 
+     * @param OrAnd $orAnd
+     * @return OrAnd
+     */
+    public function addOrAndInstance(OrAnd $orAnd)
+    {
+        $this->values[] = $orAnd;
+        return $orAnd;
+    }
     public function __toString() {
         $output = "";
         $count = count($this->values);
@@ -97,17 +108,56 @@ class OrAnd {
         }
         return $output;
     }
+    /**
+     * Add IS NULL case
+     * 
+     * @param Path $path
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
     public function addIsNullCase(Path $path)
     {
         $this->values[] = "`{" . $path . "}` IS NULL";
         return $this;
     }
+    /**
+     * Add IS NOT NULL case
+     * 
+     * @param Path $path
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
     public function addIsNotNullCase(Path $path)
     {
         $this->values[] = "`{" . $path . "}` IS NOT NULL";
         return $this;
     }
+    /**
+     * Add LIKE case with percents: LIKE '%value%'
+     * 
+     * @param string $value
+     * @param Path   $path
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
+    public function addPercentLikeCase($value, Path $path)
+    {
+        $value = $this->validateValue($value, $path);
+        $this->values[] = "`{" . $path . "}` LIKE '%" . $value . "%'";
+        return $this;
+    }
     protected function addComparisonCase($operator, $value, Path $path)
+    {
+        $f2 = function ($m) {
+            if(defined($m[1])) {
+                return constant($m[1]);
+            }
+            return $m[0];
+        };
+        
+        $value = preg_replace_callback("/^__(\w+?)__$/", $f2, $value);
+        $value = $this->validateValue($value, $path);
+        $this->values[] = "`{" . $path . "}` " . $operator . " '" . $value . "'";
+        return $this;
+    }
+    protected function validateValue($value, Path $path)
     {
         $fieldName = substr($path->last(), 1);
         $field = $this->where->map->find($path);
@@ -115,9 +165,8 @@ class OrAnd {
         if(!isset($tableFields[$fieldName])) {
             throw new \Exception("Field not found");
         }
-        $type = DataBase::CELL_TYPES_NAMESPACE . $tableFields[$fieldName]->type;
-        $value = $type::input($value);
-        $this->values[] = "`{" . $path . "}` " . $operator . " " . $value;
-        return $this;
+        $tableField = $tableFields[$fieldName];
+        $type = DataBase::CELL_TYPES_NAMESPACE . $tableField->type;
+        return $type::validateInput($value, $tableField);
     }
 }

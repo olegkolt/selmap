@@ -50,12 +50,12 @@ class DataStructImitator implements DataStructInterface {
         $path = $this->handlePathPrefix($path);
         return $this->ds->setFieldValue($value, $path);
     }
-    public function setOneToManyRelation(Path $path, $value) {
+    public function setOneToManyRelation($value, Path $path) {
         if($this->pathPrefix === false) {
             return false;
         }
         $path = $this->handlePathPrefix($path);
-        return $this->ds->setOneToManyRelation($path, $value);
+        return $this->ds->setOneToManyRelation($value, $path);
     }
     protected function handlePathPrefix(Path $path) {
         if (!is_null($this->pathPrefix)) {

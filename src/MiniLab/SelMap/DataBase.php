@@ -189,7 +189,7 @@ class DataBase {
     /**
      * Get mysqli connection
      * 
-     * @return mysqli The connection
+     * @return \mysqli The connection
      */
     public function getConn() {
         return $this->conn;

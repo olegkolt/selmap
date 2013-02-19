@@ -4,7 +4,7 @@ namespace MiniLab\SelMap\Data\CellTypes;
 
 use DateTime as DT;
 
-class Date extends Cell
+class DateTime extends Cell
 {
     public static function input($value)
     {
@@ -18,11 +18,11 @@ class Date extends Cell
         return new DT($value);
     }
     /**
-     * Return date("Y-m-d")
+     * Return date("Y-m-d H:i:s")
      * 
      * @return string Current date
      */
     public static function getNow() {
-        return date("Y-m-d");
+        return date("Y-m-d H:i:s");
     }
 }

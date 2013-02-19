@@ -14,6 +14,9 @@ use MiniLab\SelMap\Model\Field;
 
 class XmlReader
 {
+    /**
+     * @var DataBase
+     */
     protected $db;
     /**
      * 
@@ -53,7 +56,14 @@ class XmlReader
             foreach ($xTable->childNodes as $xField) {
                 if ($xField instanceof \DOMElement) {
                     $currentField = (string)$xField->getAttribute("Name");
-                    $field = new Field($currentField);
+                    $nullable = false;
+                    if($xField->hasAttribute("Null")) {
+                        $attr = strtolower($xField->getAttribute("Null"));
+                        if($attr == "true") {
+                            $nullable = true;
+                        }
+                    }
+                    $field = new Field($currentField, $nullable);
                     $fields[$currentField] = $field;
                     if ($xField->hasAttribute("PKey")) {
                         $pKeyFieldName = $currentField;
@@ -170,6 +180,8 @@ class XmlReader
         }
     }
     /**
+     * Read where element
+     * 
      * @param QueryMap $map
      * @param \DOMNode $domNode
      * @return MiniLab\SelMap\Query\Where\Where
@@ -182,6 +194,12 @@ class XmlReader
         $this->readCase($xRoot, $where->root);
         return $where;
     }
+    /**
+     * Read each OrAnd node
+     * 
+     * @param \DOMNode $case
+     * @param OrAnd $sCase
+     */
     protected function readCase(\DOMNode $case, OrAnd $sCase)
     {
         $childs = $case->childNodes;

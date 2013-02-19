@@ -1,5 +1,8 @@
 {
     "name": "minilab/selmap",
+    "homepage": "http://github.com/olegkolt/selmap",
+    "type": "library",
+    "license": "MIT",
     "require": {
         "php": ">=5.4.0"
     },

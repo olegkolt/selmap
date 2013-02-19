@@ -2,6 +2,8 @@
 
 namespace MiniLab\SelMap\Data\Struct;
 
+use MiniLab\SelMap\Path\Path;
+
 /**
  *
  * The DataStruct not connected with DB
@@ -32,7 +34,7 @@ class VirtualDataStruct extends DataStructBase {
     protected function transformPath($path) {
         return substr((string)$path->first(), 1);
     }
-    public function setOneToManyRelation(Path $path, $value) {
+    public function setOneToManyRelation($value, Path $path) {
         $this->setFieldValue($value, $path);
     }
 }

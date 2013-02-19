@@ -4,7 +4,9 @@ namespace MiniLab\SelMap\Query;
 
 use MiniLab\SelMap\DataBase;
 use MiniLab\SelMap\Query\NodeField;
+use MiniLab\SelMap\Query\NodeFuncField;
 use MiniLab\SelMap\Query\QueryMap;
+use MiniLab\SelMap\Model\MRelation;
 
 /**
  * Enter description here ...
@@ -52,6 +54,7 @@ class TableNode {
     public function __set($name, $value) {
         if($name == "createOneOnInsert") {
             $this->setCreateOnInsert($value);
+            return;
         }
         throw new \Exception("Property '" . $name . "' not found");
     }

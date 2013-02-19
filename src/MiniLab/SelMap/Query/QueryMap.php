@@ -117,14 +117,14 @@ class QueryMap {
         $sql = preg_replace_callback("/`\{(.+?)\}`/", $f, $sql);
     
         // Defined constants
-        $f2 = function ($m) {
+        /*$f2 = function ($m) {
             if(defined($m[1])) {
                 return constant($m[1]);
             }
             return $m[0];
         };
     
-        $sql = preg_replace_callback("/__(\w+?)__/", $f2, $sql);
+        $sql = preg_replace_callback("/__(\w+?)__/", $f2, $sql);*/
         return $sql;
     }
     protected function isLoadRel() {

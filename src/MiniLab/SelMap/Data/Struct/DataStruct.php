@@ -6,11 +6,13 @@ use MiniLab\SelMap\Path\Path;
 use MiniLab\SelMap\Query\QueryMap;
 use MiniLab\SelMap\Path\PathNodeType;
 use MiniLab\SelMap\Data\Record;
+use MiniLab\SelMap\Data\RecordSet;
 use MiniLab\SelMap\Data\EmptyCell;
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\Query\Where\OrAnd;
 use MiniLab\SelMap\Query\Where\Where;
 use MiniLab\SelMap\Query\TableNode;
+use MiniLab\SelMap\Data\DataInterface;
 
 /**
  * @property int $itemsPerPage
@@ -26,7 +28,7 @@ class DataStruct extends DataStructBase {
     protected $db;
 
     protected $table = array();
-    protected $row =   array();
+    protected $row;
     protected $itemsPerPage =  10;
     protected $pagesCount =     0;
     protected $itemsCount =     0;
@@ -39,6 +41,7 @@ class DataStruct extends DataStructBase {
         $this->map = $map;
         $this->db = $map->db;
         $this->rootTableName = $this->map->root->table->name;
+        $this->row = new RecordSet();
     }
     /**
      * @ignore
@@ -62,20 +65,22 @@ class DataStruct extends DataStructBase {
     /**
      * Search with respect to the subject. Returns EmptyCell if seach failed
      * 
-     * @param  Record|array|Cell $subject Record, array or Cell
-     * @param  Path              $path
-     * @return Cell|Record|array|EmptyCell
+     * @param  DataInterface $subject Cell, Record, RecordSet or EmptyCell
+     * @param  Path          $path
+     * @return DataInterface Cell, Record, RecordSet or EmptyCell
      */
-    public static function &search($subject, Path $path) {
+    public static function &search(DataInterface $subject, Path $path) {
         //echo $path . "<br /";
         $rec = & $subject;
         foreach ($path as $el) {
             if($el->getType() == PathNodeType::ARRAYTYPE) {
                 $el = (string)$el;
                 $next = $rec;
-                unset($rec);
+                //unset($rec);
                 if ($el == "@@current") {
-                    if (!($rec = current($next))) {
+                    $next->rewind();
+                    if (!($rec = $next->current())) {
+                    //if (!($rec = current($next))) {
                         $f = new EmptyCell();
                         return $f;
                     }
@@ -85,9 +90,8 @@ class DataStruct extends DataStructBase {
                     if(isset($a[1])) {
                         list($fld, $val) = $a;
                         $val = trim($val, "'\"");
-                        $f = false;
                         foreach ($next as $k => $r) {
-                            if($r[$fld] == $val) {
+                            if($r[$fld]->value == $val) {
                                 $rec = $next[$k];
                                 $f = true;
                                 break;
@@ -106,7 +110,9 @@ class DataStruct extends DataStructBase {
                 }
             } elseif ($el->getType() == PathNodeType::FIELD) {
                 $el = substr($el, 1);
-                if (!isset($rec[$el])) {
+                //var_dump($rec);
+                //die();
+                if ($rec->isEmpty() || !isset($rec[$el])) {
                     $f = new EmptyCell();
                     return $f;
                 }
@@ -118,12 +124,16 @@ class DataStruct extends DataStructBase {
                     $f = new EmptyCell();
                     return $f;
                 }
-                $rec = & $rec->rel[(string)$el];
-                //echo "table/";
+                $rec = $rec->getRel((string)$el);
             }
         }
         return $rec;
     }
+    /**
+     * Find relative to DataStruct::$row
+     * 
+     * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::find()
+     */
     public function &find(Path $path) {
         if (is_null($this->row)) {
             $f = false;
@@ -136,6 +146,10 @@ class DataStruct extends DataStructBase {
         }
         return DataStruct::search($this->row, $path);
     }
+    /**
+     * (non-PHPdoc)
+     * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::setFieldValue()
+     */
     public function setFieldValue($value, Path $path) {
         $field = $path->last();
         if ($field->getType() == PathNodeType::FIELD) {
@@ -143,18 +157,18 @@ class DataStruct extends DataStructBase {
         } else {
             throw new \Exception("Path not valid: " . $path);
         }
-        if($cell = $this->find($path)) {
+        $cell = $this->find($path);
+        if(!$cell->isEmpty()) {
             $rec = $cell->record;
             $rec[$field] = $value;
             return $rec[$field];
         }
-        if($rec = $this->find($path->withoutLast())) {
-            $rec[$field] = $value;
-            return $rec[$field];
-        }
+        $rec = $this->find($path->withoutLast());
+        $rec[$field] = $value;
+        return $rec[$field];
     }
     /**
-     * @see SelMap.DataStructBase::createRecords()
+     * @see \MiniLab\SelMap\Data\Struct\DataStructBase::createRecords()
      * @return Record New root record
      */
     public function createRecords() {
@@ -174,7 +188,7 @@ class DataStruct extends DataStructBase {
                 $relation = $sNode->table->fields[$field]->rel[$relName];
                 $rec[$field] = "";
                 if (!$childNode->createOneOnInsert && ($relation->isFTableArray() || $relation->crossRel->isFTableArray())) {
-                    $rec[$field]->rel[$relName] = array();
+                    $rec[$field]->rel[$relName] = new RecordSet();
                     continue;
                 }
                 $cRec = $this->createRecord($childNode->table);
@@ -186,11 +200,21 @@ class DataStruct extends DataStructBase {
             }
         }
     }
+    /**
+     * 
+     * @param Table $tbl
+     * @return \MiniLab\SelMap\Data\Record
+     */
     protected function createRecord(Table $tbl) {
         $rec = new Record($tbl);
         $this->table[$tbl->name][] = $rec;
         return $rec;
     }
+    /**
+     * 
+     * @param array $selectOrder
+     * @return string
+     */
     protected function orderPrepare(array $selectOrder) {
         if (count($selectOrder) == 0) {
             return "";
@@ -267,7 +291,7 @@ class DataStruct extends DataStructBase {
         $this->itemsCount = 0;
         $limit = "";
         $this->table = array();
-        $this->row = array();
+        $this->row = new RecordSet();
         $queryParts = $this->map->getSelectSQL();
         
         if (!($where instanceof Where) && !is_null($where)) {
@@ -314,6 +338,9 @@ class DataStruct extends DataStructBase {
                     $pk = $tblData[$pKeyField];
                     $c[$alias] = $pk;
                     $continue = false;
+                    if (!isset($this->table[$name])) {
+                        $this->table[$name] = new RecordSet();
+                    }
                     if (!isset($this->table[$name][$pk])) {
                         $rec = new Record($this->db->getTable($name), $tblData);
                         $this->table[$name][$pk] = $rec;
@@ -328,6 +355,7 @@ class DataStruct extends DataStructBase {
             if ($countResult && $this->pagesCount == 0 && $this->itemsCount == 0) {
                 $this->selectFoundRows();
             }
+            //$this->row->rewind();
         }
     }
     protected function selectFoundRows() {
@@ -358,7 +386,8 @@ class DataStruct extends DataStructBase {
                         $id = $r[$sNode->aliasName];
                         if (isset($this->table[$tableName][$id])) {
                             $child = $this->table[$tableName][$id];
-                            $parent->addRel($name, $tableName, $fName, $child, $id);
+                            $parent[$name]->addMultipleRel($relName, $child, $id);
+                            //$parent->addRel($name, $tableName, $fName, $child, $id);
                             $this->eachNode($child, $sNode, $r);
                         }
                     } else {
@@ -369,7 +398,8 @@ class DataStruct extends DataStructBase {
                         $id = $r[$sNode->aliasName];
                         if (isset($this->table[$tableName][$id])) {
                             $child = $this->table[$tableName][$id];
-                            $parent->addRel($name, $tableName, $fName, $child);
+                            $parent[$name]->addSingleRel($relName, $child);
+                            //$parent->addRel($name, $tableName, $fName, $child);
                             $this->eachNode($child, $sNode, $r);
                         }
                     }
@@ -377,6 +407,10 @@ class DataStruct extends DataStructBase {
             }
         }
     }
+    /**
+     * (non-PHPdoc)
+     * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::setOneToManyRelation()
+     */
     public function setOneToManyRelation($value, Path $path) {
         $relName = (string)$path->last();
         $aPath = $path->withoutLast();
@@ -399,10 +433,7 @@ class DataStruct extends DataStructBase {
         $map = new QueryMap($this->db);
         $map->root = $node;
         $ds = new DataStruct($map);
-        $where = new Where($map);
-        $case = new OrAnd($this->db);
-        $case->addCase("`{@" . $key . "}` = '" . $value . "'");
-        $where->root = $case;
+        $where = $map->createWhere()->addOrAnd()->addEqualCase($value, new Path("@" . $key))->where;
         $ds->select($where);
         $c->rel[$relName] = $ds->row[$value];
     }
@@ -469,13 +500,11 @@ class DataStruct extends DataStructBase {
             $records[$id] = $row;
         }
     }
+    /**
+     * (non-PHPdoc)
+     * @see \MiniLab\SelMap\Data\Struct\DataStructBase::save()
+     */
     public function save() {
-        //$ov = new \ObjectViewer();
-        //$ov->printQueryLog(DB::instance());
-        //$ov->printQueryMap($this->map);
-        //$ov->printDataStruct($this);
-        //echo $ov->getHTML();
-        //die();
         $tId = $this->db->startTransaction();
         foreach ($this->table as $tbl) {
             foreach ($tbl as $rec) {

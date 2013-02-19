@@ -15,6 +15,11 @@
     <Table Name="product">
         <Field Name="id" Type="Int" PKey="true" />
         <Field Name="name" Type="String" />
-        <Field Name="number" Type="String" />
+        <Field Name="number" Type="String" Null="true" />
+    </Table>
+    <Table Name="category">
+        <Field Name="id" Type="Int" PKey="true" />
+        <Field Name="parent" TreeKey="id" Type="Int" Null="true" />
+        <Field Name="name" Type="String" />
     </Table>
 </DataBase>

@@ -4,7 +4,7 @@ namespace MiniLab\SelMap\Data;
 
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\DataBase;
-//use MiniLab\SelMap\Data\Cell;
+use MiniLab\SelMap\Data\CellTypes\Cell;
 
 /**
  * Enter description here ...
@@ -14,7 +14,7 @@ use MiniLab\SelMap\DataBase;
  * @property-read string $pk        Value of record's primary key
  * @property-read Table  $table     Table object
  */
-class Record implements \ArrayAccess, \Iterator, \JsonSerializable {
+class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterface {
     protected $cell = array();
     protected $modified = array();
     protected $position = 0;
@@ -54,13 +54,6 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable {
             $this->pk = $this->cell[(string)$this->pKeyField];
         }
     }
-    public function addRel($cellName, $fTableName, $fKey, Record $fRecord, $id = null) {
-        if (is_null($id)) {
-            $this->cell[$cellName]->rel[$fTableName . ":" . $fKey] = $fRecord;
-        } else {
-            $this->cell[$cellName]->rel[$fTableName . ":" . $fKey][$id] = $fRecord;
-        }
-    }
     public function addModified($fieldName) {
         $this->modified[$fieldName] = true;
     }
@@ -68,6 +61,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable {
     {
         $field = $this->table->fields[$fieldName];
         $type = DataBase::CELL_TYPES_NAMESPACE . $field->type;
+        //echo "create " . $type; 
         return new $type($value, $this, $field);
     }
     public function offsetSet($offset, $value) {
@@ -234,5 +228,9 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable {
         $result["_pk"] = $this->pk;
         $result["_pKeyField"] = (string)$this->pKeyField;
         return $result;
+    }
+    public function isEmpty()
+    {
+        return false;
     }
 }

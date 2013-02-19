@@ -14,14 +14,31 @@ class Field implements \JsonSerializable
     protected $type = "Cell";
     protected $name;
     protected $rel = array();
-    public function __construct($name)
+    protected $nullable;
+    /**
+     * 
+     * @param string $name Field name
+     */
+    public function __construct($name, $nullable = false)
     {
         $this->name = (string)$name;
+        $this->nullable = (bool)$nullable;
     }
+    /**
+     * Get field name
+     * 
+     * @return string
+     */
     public function __toString()
     {
         return (string)$this->name;
     }
+    /**
+     * 
+     * @param string $relName
+     * @param Relation $rel
+     * @return void
+     */
     public function setRel($relName, Relation $rel)
     {
         $this->rel[$relName] = $rel;
@@ -37,6 +54,7 @@ class Field implements \JsonSerializable
         }
     }
     /**
+     * Set field type
      * 
      * @param string $type Type name from namespace MiniLab\SelMap\Data\CellTypes (String, Int, etc.)
      */
@@ -44,8 +62,21 @@ class Field implements \JsonSerializable
     {
         $this->type = $type;
     }
+    /**
+     * Whether the field can be null
+     * 
+     * @return boolean
+     */
+    public function isNullable()
+    {
+        return $this->nullable;
+    }
     public function jsonSerialize()
     {
-        return $this->type . ": " . $this->name;
+        $n = " NOT NULL";
+        if($this->nullable) {
+            $n = " NULL";
+        }
+        return $this->type . ": " . $this->name . $n;
     }
 }
