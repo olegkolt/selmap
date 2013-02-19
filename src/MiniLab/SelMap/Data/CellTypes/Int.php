@@ -7,7 +7,7 @@ class Int extends Cell
     public static function input($value)
     {
         if(!is_numeric($value)) {
-            throw new \InvalidArgumentException("Field value must be numeric");
+            throw new \InvalidArgumentException("Field value must be numeric. '" . $value . "' given");
         }
         return (int)$value;
     }

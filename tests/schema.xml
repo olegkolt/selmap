@@ -22,4 +22,11 @@
         <Field Name="parent" TreeKey="id" Type="Int" Null="true" />
         <Field Name="name" Type="String" />
     </Table>
+    <Table Name="page">
+        <Field Name="id" Type="Int" PKey="true" />
+        <Field Name="category" Type="Int" FTable="category" />
+        <Field Name="text" Type="String" />
+        <Field Name="keywords" Type="String" />
+        <Field Name="description" Type="String" />
+    </Table>
 </DataBase>

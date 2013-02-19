@@ -5,6 +5,7 @@ namespace MiniLab\SelMap\Data;
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\DataBase;
 use MiniLab\SelMap\Data\CellTypes\Cell;
+use MiniLab\SelMap\Model\Relation;
 
 /**
  * Enter description here ...
@@ -20,11 +21,21 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     protected $position = 0;
     protected $fields = array();
     protected $inserted = false;
-
+    /**
+     * @var MiniLab\SelMap\Model\Field
+     */
     protected $pKeyField;
+    /**
+     * @var MiniLab\SelMap\Data\CellTypes\Cell
+     */
     protected $pk;
+    /**
+     * @var MiniLab\SelMap\Model\Table
+     */
     protected $table;
-
+    /**
+     * @var MiniLab\SelMap\DataBase
+     */
     protected $db;
     /**
      *
@@ -119,7 +130,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     /**
      * Save current row
      * 
-     * @return string row PK
+     * @return Cell row PK
      */
     public function save() {
         //echo "Save:" . $this->table->name . ", ";
@@ -138,7 +149,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     /**
      * Insert current row
      * 
-     * @return string inserted id
+     * @return Cell inserted id
      */
     public function insert() {
         if ($this->inserted) {
@@ -164,7 +175,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
                     //var_dump($relation->inherite);
                     //var_dump($relation->crossRel->isFTableArray());
                     //echo "<br />";
-                    $v->value = $fRec->save();
+                    $v->value = $fRec->save()->value;
                 }
             }
         }
@@ -185,11 +196,18 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
         if (!$this->havePK()) {
             $this->offsetSet((string)$this->pKeyField, $this->db->insertId());
         }
-        if ((string)$this->pk == "0") {
+        if (strval($this->pk) == "0") {
             throw new \Exception("PK is 0. Query: " . $query);
         }
         return $this->pk;
     }
+    /**
+     * Execute update SQL
+     * 
+     * @param array $cells
+     * @throws \Exception
+     * @return boolean
+     */
     public function update(array $cells = null) {
         if (is_null($cells)) {
             $cells = array_keys($this->modified);

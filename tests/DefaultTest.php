@@ -175,4 +175,30 @@ class DefaultTest extends \PHPUnit_Framework_TestCase
         $this->assertLessThan($id, 1);
         $this->db->getTable("product")->delete($id);
     }
+    public function testCreationWithCreateOnInsertOptionAndDeletion()
+    {
+        $map = $this->db->createMap()->addTable("page")
+                    ->addField("category")
+                        ->addTable("category", "id")
+                            ->setCreateOnInsert(true)
+                            ->addField("name")->node
+                            ->addField("parent")->node
+                        ->parent->node
+                    ->addField("text")->map;
+        
+        $ds = new DataStruct($map);
+        $ds->createRecords();
+        $ds->setFieldValue("Тестовая страница", new Path("@text"));
+        $ds->setFieldValue(8, new Path("@category/category:id/@parent"));
+        $ds->setFieldValue("Тест", new Path("@category/category:id/@name"));
+        $ds->save();
+        $pageId = $ds->find(new Path("@id"))->value;
+        $catId = $ds->find(new Path("@category"))->value;
+        
+        $this->assertLessThan($pageId, 1);
+        $this->assertLessThan($catId, 1);
+        
+        $this->db->getTable("page")->delete($pageId);
+        $this->db->getTable("category")->delete($catId);
+    }
 }

@@ -36,10 +36,10 @@ class Balance extends Cell
     }
     public static function input($value)
     {
-        return $value;
+        return Rubles::input($value);
     }
     public static function output($value)
     {
-        return $value;
+        return Rubles::output($value);
     }
 }

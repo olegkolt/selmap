@@ -38,6 +38,7 @@ class TreeDataStruct extends DataStruct
             $parentId = $row[$parentField]->value;
             if(!is_null($parentId)) {
                 $this->table[$rootTable][$parentId][$idField]->addMultipleRel($relName, $row, $id);
+                //var_dump($parentId);
                 //var_dump($this->table[$rootTable][$parentId]); 
                 //die();
                 //unset($this->row[$id]);

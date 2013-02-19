@@ -1,6 +1,6 @@
 vendor
 docs
-settings
+.settings
 .project
 .buildpath
 selmap.php

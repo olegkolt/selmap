@@ -18,6 +18,7 @@ abstract class DataStructBase implements DataStructInterface
     /**
      * Save changes
      *
+     * @return void
      */
     public function save() {
         while (list($k, $f) = each($this->onSave)) {
