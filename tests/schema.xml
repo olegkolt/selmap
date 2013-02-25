@@ -11,6 +11,7 @@
         <Field Name="count" Type="Int" />
         <Field Name="order" Type="Int" FTable="order" />
         <Field Name="product" Type="Int" FTable="product" />
+        <Field Name="price" Type="Rubles" />
     </Table>
     <Table Name="product">
         <Field Name="id" Type="Int" PKey="true" />

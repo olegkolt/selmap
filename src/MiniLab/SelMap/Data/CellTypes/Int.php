@@ -6,6 +6,9 @@ class Int extends Cell
 {
     public static function input($value)
     {
+        if($value == "") {
+            $value = 0;
+        }
         if(!is_numeric($value)) {
             throw new \InvalidArgumentException("Field value must be numeric. '" . $value . "' given");
         }

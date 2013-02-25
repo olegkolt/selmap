@@ -18,28 +18,47 @@ use MiniLab\SelMap\Data\DataInterface;
  */
 class Cell implements \JsonSerializable, DataInterface
 {
+    /**
+     * @var mixed
+     */
     protected $value;
+    /**
+     * @var MiniLab\SelMap\Data\RecordSet
+     */
     protected $rel;
+    /**
+     * @var MiniLab\SelMap\Data\Record
+     */
     protected $record;
+    /**
+     * @var MiniLab\SelMap\Model\Field
+     */
     protected $field;
     /**
      * 
      * @param string $value Cell value
      * @param Record $rec   Current record
      * @param Field  $field
+     * @param bool   $isFromDB
      */
-    public function __construct($value, Record $rec, Field $field) {
+    public function __construct($value, Record $rec, Field $field, $isFromDB = false)
+    {
         $this->record = $rec;
         $this->field = $field;
         $this->rel = new RecordSet();
-        $this->value = static::validateOutput($value, $this->field);
+        if($isFromDB) {
+            $this->value = static::validateOutput($value, $this->field);
+        } else {
+            $this->value = static::validateInput($value, $this->field);
+        }
     }
     /**
      * Get Cell value
      * 
      * @return string
      */
-    public function __toString() {
+    public function __toString()
+    {
         return (string)$this->value;
     }
     /**
@@ -76,6 +95,7 @@ class Cell implements \JsonSerializable, DataInterface
         return $this->rel[$relName];
     }
     /**
+     * Add single relation. This record can have only one related record on foreign table
      * 
      * @param string $relName
      * @param Record $fRec
@@ -86,6 +106,7 @@ class Cell implements \JsonSerializable, DataInterface
         $this->rel[$relName] = $fRec;
     }
     /**
+     * Add multiple relation. This record can have many related records on foreign table
      * 
      * @param string $relName
      * @param Record $fRec
@@ -115,11 +136,22 @@ class Cell implements \JsonSerializable, DataInterface
      */
     public function getUpdateSql()
     {
-        $link = $this->record->table->db->getConn();
-        $value = $link->real_escape_string($this->value);
-        //$value = addslashes($this->value);
-        return "`" . $this->field->name . "` = '" . $value . "'";
+        return "`" . $this->field->name . "` = '" . $this->escapeValue() . "'";
     }
+    /**
+     * Get prepared to query value
+     * 
+     * @return string
+     */
+    public function escapeValue()
+    {
+        $link = $this->record->table->db->getConn();
+        return $link->real_escape_string($this->value);
+    }
+    /**
+     * Serialize the Cell
+     * 
+     */
     public function jsonSerialize()
     {
         $result = array("value" => $this->value);

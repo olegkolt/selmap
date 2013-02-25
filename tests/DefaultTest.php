@@ -9,20 +9,10 @@ use MiniLab\SelMap\Reader\XmlReader;
 use MiniLab\SelMap\Query\QueryMap;
 use MiniLab\SelMap\Query\Where\Where;
 
-class DefaultTest extends \PHPUnit_Framework_TestCase 
+include_once __DIR__ . '/SelMapConnectedTest.php';
+
+class DefaultTest extends SelMapConnectedTest
 {
-    protected $db;
-    public function setUp()
-    {
-        $this->db = new DataBase();
-        $reader = new XmlReader($this->db);
-        $reader->readSchema(XmlReader::readXmlFile($GLOBALS['DB_SCHEMA_PATH']));
-        $this->db->connect($GLOBALS['DB_HOST'], $GLOBALS['DB_USER'], $GLOBALS['DB_PASS'], $GLOBALS['DB_NAME']);
-    }
-    public function tearDown()
-    {
-        $this->db->close();
-    }
     public function testSelection()
     {
         $map = $this->db->createMap()->addTable("order")

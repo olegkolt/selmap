@@ -8,74 +8,144 @@ use MiniLab\SelMap\Data\CellTypes\Cell;
 use MiniLab\SelMap\Model\Relation;
 
 /**
- * Enter description here ...
+ * Record class represent db single row
  * 
  * @author Oleg Koltunov <olegkolt@mail.ru>
  * @property-read string $pKeyField Primary key field name
  * @property-read string $pk        Value of record's primary key
  * @property-read Table  $table     Table object
  */
-class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterface {
+class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterface
+{
+    /**
+     * Array of Cell objects
+     * 
+     * @var array(Cell)
+     */
     protected $cell = array();
+    /**
+     * Modified fields
+     * 
+     * @var array(string)
+     */
     protected $modified = array();
+    /**
+     * Needed for Iterator interface
+     * 
+     * @var int
+     */
     protected $position = 0;
+    /**
+     * Array of record fields
+     * 
+     * @var array(string)
+     */
     protected $fields = array();
+    /**
+     * True if record has been already inserted to DB
+     * 
+     * @var bool
+     */
     protected $inserted = false;
     /**
+     * Record's primary key field
+     * 
      * @var MiniLab\SelMap\Model\Field
      */
     protected $pKeyField;
     /**
+     * Record's primary key
+     * 
      * @var MiniLab\SelMap\Data\CellTypes\Cell
      */
     protected $pk;
     /**
+     * Record's table
+     * 
      * @var MiniLab\SelMap\Model\Table
      */
     protected $table;
     /**
+     * DataBase link
+     * 
      * @var MiniLab\SelMap\DataBase
      */
     protected $db;
     /**
+     * Create record instance
      *
      * @param Table $table
      * @param array($fieldName => $value) $rowArray
+     * @param bool $isFromDB
      */
-    public function __construct(Table $table, array $rowArray = array()) {
+    public function __construct(Table $table, array $rowArray = array(), $isFromDB = false)
+    {
         $this->pKeyField = $table->pKeyField;
         $this->table = $table;
         $this->db = $table->db;
         foreach ($rowArray as $k => $v) {
-            $this->offsetSet($k, $v);
+            $k = (string)$k;
+            $value = $this->createCell($v, $k, $isFromDB);
+            $this->cell[$k] = $value;
+            if (!in_array($k, $this->fields)){
+                $this->fields[] = $k;
+            }
         }
         $this->modified = array();
+        $this->pkCheck();
     }
     /**
      * @ignore
      */
-    public function __get($name) {
+    public function __get($name)
+    {
         $props = array("pKeyField", "pk", "table");
         if (in_array($name, $props)) {
             return $this->$name;
         }
     }
-    protected function pkCheck() {
+    /**
+     * Set $this->pk if isset value of pk field
+     * 
+     * @return void
+     */
+    protected function pkCheck()
+    {
         if (isset($this->cell[(string)$this->pKeyField])) {
             $this->pk = $this->cell[(string)$this->pKeyField];
         }
     }
-    public function addModified($fieldName) {
-        $this->modified[$fieldName] = true;
+    /**
+     * Mark field as modified
+     * 
+     * @param string $fieldName
+     * @return void
+     */
+    public function addModified($fieldName)
+    {
+        $this->modified[] = $fieldName;
     }
-    protected function createCell($value, $fieldName)
+    /**
+     * Create Cell object
+     * 
+     * @param string $value
+     * @param string $fieldName
+     * @param bool   $isFromDB
+     * @return Cell
+     */
+    protected function createCell($value, $fieldName, $isFromDB = false)
     {
         $field = $this->table->fields[$fieldName];
         $type = DataBase::CELL_TYPES_NAMESPACE . $field->type;
         //echo "create " . $type; 
-        return new $type($value, $this, $field);
+        return new $type($value, $this, $field, $isFromDB);
     }
-    public function offsetSet($offset, $value) {
+    /**
+     * (non-PHPdoc)
+     * @see ArrayAccess::offsetSet()
+     */
+    public function offsetSet($offset, $value)
+    {
         if (is_null($offset)) {
             throw new \Exception("Field name not valid");
         }
@@ -95,36 +165,81 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
                 $this->cell[$offset] = $value;
             }
         }
-        $this->modified[$offset] = true;
-        if (!in_array($offset, $this->fields)) {
+        $this->modified[] = $offset;
+        if (!in_array($offset, $this->fields)){
             $this->fields[] = $offset;
         }
         $this->pkCheck();
     }
-    public function offsetExists($offset) {
+    /**
+     * (non-PHPdoc)
+     * @see ArrayAccess::offsetExists()
+     */
+    public function offsetExists($offset)
+    {
         return isset($this->cell[$offset]);
     }
-    public function offsetUnset($offset) {
+    /**
+     * (non-PHPdoc)
+     * @see ArrayAccess::offsetUnset()
+     */
+    public function offsetUnset($offset)
+    {
         unset($this->fields[array_search($offset, $this->fields) ]);
         unset($this->cell[$offset]);
     }
-    public function offsetGet($offset) {
+    /**
+     * (non-PHPdoc)
+     * @see ArrayAccess::offsetGet()
+     */
+    public function offsetGet($offset)
+    {
         return isset($this->cell[$offset]) ? $this->cell[$offset] : null;
     }
-    public function rewind() {
+    /**
+     * Implements Iterator interface
+     * 
+     * @return void
+     */
+    public function rewind()
+    {
         $this->position = 0;
     }
-    public function current() {
+    /**
+     * Implements Iterator interface
+     * 
+     * @return MiniLab\SelMap\Data\CellTypes\Cell
+     */
+    public function current()
+    {
         $field = $this->fields[$this->position];
         return $this->cell[$field];
     }
-    public function key() {
+    /**
+     * Implements Iterator interface
+     * 
+     * @return MiniLab\SelMap\Data\CellTypes\Cell
+     */
+    public function key()
+    {
         return $this->fields[$this->position];
     }
-    public function next() {
+    /**
+     * Implements Iterator interface
+     * 
+     * @return void
+     */
+    public function next()
+    {
         ++$this->position;
     }
-    public function valid() {
+    /**
+     * Implements Iterator interface
+     * 
+     * @return bool
+     */
+    public function valid()
+    {
         return isset($this->fields[$this->position]);
     }
     /**
@@ -141,7 +256,13 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
             return $this->pk;
         }
     }
-    public function havePK() {
+    /**
+     * Return 'true' if the record have primary key
+     * 
+     * @return boolean
+     */
+    public function havePK()
+    {
         $this->pkCheck();
         $pk = (string)$this->pk;
         return !($pk == "" || $pk == "0");
@@ -151,7 +272,8 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
      * 
      * @return Cell inserted id
      */
-    public function insert() {
+    public function insert()
+    {
         if ($this->inserted) {
             return $this->pk;
         }
@@ -186,7 +308,8 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
             if (is_null($v->value)) {
                 $values[] = "NULL";
             } else {
-                $values[] = "'" . addslashes($v->value) . "'";
+                //$values[] = "'" . addslashes((string)$v->value) . "'";
+                $values[] = "'" . $v->escapeValue() . "'";
             }
         }
         $query = "INSERT INTO `" . $this->table->name . "` (" . implode(", ", $fields) . ")" . " VALUES (" . implode(", ", $values) . ")";
@@ -208,9 +331,10 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
      * @throws \Exception
      * @return boolean
      */
-    public function update(array $cells = null) {
+    public function update(array $cells = null)
+    {
         if (is_null($cells)) {
-            $cells = array_keys($this->modified);
+            $cells = $this->modified;
         }
         if (array_search($this->pKeyField, $cells) !== false) {
             unset($cells[array_search($this->pKeyField, $cells) ]);
@@ -241,12 +365,23 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
         $this->modified = array();
         return true;
     }
-    public function jsonSerialize() {
+    /**
+     * Implements JsonSerializable
+     * 
+     * @return array
+     */
+    public function jsonSerialize()
+    {
         $result = $this->cell;
         $result["_pk"] = $this->pk;
         $result["_pKeyField"] = (string)$this->pKeyField;
         return $result;
     }
+    /**
+     * Always return 'false'
+     * 
+     * @see \MiniLab\SelMap\Data\DataInterface::isEmpty()
+     */
     public function isEmpty()
     {
         return false;

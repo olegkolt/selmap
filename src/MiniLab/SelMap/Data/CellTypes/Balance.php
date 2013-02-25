@@ -5,8 +5,13 @@ namespace MiniLab\SelMap\Data\CellTypes;
 use MiniLab\SelMap\Data\Record;
 use MiniLab\SelMap\Model\Field;
 
-class Balance extends Cell
+class Balance extends Rubles
 {
+    /**
+     * Initial money value
+     * 
+     * @var Money\Money
+     */
     protected $initialValue;
     /**
      * 
@@ -14,32 +19,18 @@ class Balance extends Cell
      * @param Record $rec
      * @param Field  $fieldName
      */
-    public function __construct($value, Record $rec, Field $field)
+    public function __construct($value, Record $rec, Field $field, $isFromDB = false)
     {
-        parent::__construct(floatval($value), $rec, $field);
-        $this->initialValue = floatval($value);
+        parent::__construct($value, $rec, $field, $isFromDB);
+        if($isFromDB === false) {
+            $value = 0;
+        }
+        $this->initialValue = Rubles::output($value);
     }
     public function getUpdateSql()
     {
-        $diff = $this->value - $this->initialValue;
+        $diff = $this->value->subtract($this->initialValue);
+        $diff = Rubles::moneyToDBFormat($diff);
         return "`" . $this->field->name . "` = `" . $this->fieldName . "` + '" . $diff . "'";
-    }
-    /**
-     * @ignore
-     */
-    public function __set($name, $value)
-    {
-        if ($name == "value") {
-            $value = floatval($value);
-        }
-        parent::__set($name, $value);
-    }
-    public static function input($value)
-    {
-        return Rubles::input($value);
-    }
-    public static function output($value)
-    {
-        return Rubles::output($value);
     }
 }

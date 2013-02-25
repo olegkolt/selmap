@@ -22,19 +22,51 @@ use MiniLab\SelMap\Data\DataInterface;
  * @property-read int   $itemsCount
  */
 class DataStruct extends DataStructBase {
+    /**
+     * @var MiniLab\SelMap\Query\QueryMap
+     */
     protected $map;
+    /**
+     * @var MiniLab\SelMap\Query\Where\Where
+     */
     protected $where;
+    /**
+     * @var string
+     */
     protected $rootTableName;
+    /**
+     * @var MiniLab\SelMap\DataBase;
+     */
     protected $db;
-
+    /**
+     * @var array(MiniLab\SelMap\Data\RecordSet)
+     */
     protected $table = array();
+    /**
+     * @var MiniLab\SelMap\Data\RecordSet
+     */
     protected $row;
+    /**
+     * Count items per page. Item is one root node element - MiniLab\SelMap\Data\Record
+     * 
+     * @var int
+     */
     protected $itemsPerPage =  10;
+    /**
+     * Last query total pages count
+     * 
+     * @var int
+     */
     protected $pagesCount =     0;
+    /**
+     * Last query total items count
+     * 
+     * @var int
+     */
     protected $itemsCount =     0;
     /**
-     *
      * Create DataStruct
+     * 
      * @param QueryMap $map
      */
     public function __construct(QueryMap $map) {
@@ -177,6 +209,11 @@ class DataStruct extends DataStructBase {
         $this->createRecordRels($rec, $this->map->root);
         return $rec;
     }
+    /**
+     * Clean ->row and ->table property
+     * 
+     * @return void
+     */
     public function clean() {
         $this->row = array();
         $this->table = array();
@@ -202,7 +239,7 @@ class DataStruct extends DataStructBase {
     }
     /**
      * 
-     * @param Table $tbl
+     * @param MiniLab\SelMap\Model\Table $tbl
      * @return \MiniLab\SelMap\Data\Record
      */
     protected function createRecord(Table $tbl) {
@@ -342,7 +379,7 @@ class DataStruct extends DataStructBase {
                         $this->table[$name] = new RecordSet();
                     }
                     if (!isset($this->table[$name][$pk])) {
-                        $rec = new Record($this->db->getTable($name), $tblData);
+                        $rec = new Record($this->db->getTable($name), $tblData, true);
                         $this->table[$name][$pk] = $rec;
                     }
                 }
@@ -437,6 +474,12 @@ class DataStruct extends DataStructBase {
         $ds->select($where);
         $c->rel[$relName] = $ds->row[$value];
     }
+    /**
+     * Set many to many relations
+     * 
+     * @param array $newValues New foreign records
+     * @param Path $path
+     */
     public function setManyToManyRelation(array $newValues, Path $path) {
         if ($records = & $this->find($path)) {
             $current = array_keys($records);
