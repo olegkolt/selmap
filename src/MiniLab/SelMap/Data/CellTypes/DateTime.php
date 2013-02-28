@@ -11,7 +11,7 @@ class DateTime extends Cell
         if(!($value instanceof DT)) {
             throw new \InvalidArgumentException("Must be instance of DateTime");
         }
-        return $value->format('Y-m-d');
+        return $value->format("Y-m-d H:i:s");
     }
     public static function output($value)
     {

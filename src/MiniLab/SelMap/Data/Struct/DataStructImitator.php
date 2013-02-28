@@ -5,6 +5,7 @@ namespace MiniLab\SelMap\Data\Struct;
 use MiniLab\SelMap\Path\Path;
 use MiniLab\SelMap\Data\Struct\DataStructInterface;
 use MiniLab\SelMap\Data\Struct\DataStruct;
+use MiniLab\SelMap\Data\EmptyCell;
 
 class DataStructImitator implements DataStructInterface {
     protected $ds;
@@ -36,7 +37,7 @@ class DataStructImitator implements DataStructInterface {
     }
     public function &find(Path $path) {
         if($this->pathPrefix === false) {
-            $f = false;
+            $f = new EmptyCell();
             return $f;
         }
         $path = $this->handlePathPrefix($path);

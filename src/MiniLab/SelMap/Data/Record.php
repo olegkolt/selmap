@@ -11,7 +11,7 @@ use MiniLab\SelMap\Model\Relation;
  * Record class represent db single row
  * 
  * @author Oleg Koltunov <olegkolt@mail.ru>
- * @property-read string $pKeyField Primary key field name
+ * @property-read Field  $pKeyField Primary key field name
  * @property-read string $pk        Value of record's primary key
  * @property-read Table  $table     Table object
  */
@@ -123,6 +123,9 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
      */
     public function addModified($fieldName)
     {
+        if(in_array($fieldName, $this->modified)) {
+            return;
+        }
         $this->modified[] = $fieldName;
     }
     /**
@@ -165,7 +168,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
                 $this->cell[$offset] = $value;
             }
         }
-        $this->modified[] = $offset;
+        $this->addModified($offset);
         if (!in_array($offset, $this->fields)){
             $this->fields[] = $offset;
         }
@@ -277,7 +280,6 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
         if ($this->inserted) {
             return $this->pk;
         }
-        //echo "insert " . $this->table->name;
         foreach ($this->cell as $field => $v) {
             foreach ($v->rel as $relName => $fRec) {
                 list($tableName, $fKey) = explode(":", $relName);
@@ -290,10 +292,14 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
 
                 $relation = $this->table->fields[$field]->rel[$relName];
                 //var_dump($relation->crossRel->isFTableArray());
+                //var_dump($v->value);
+                //echo "!";
+                //die();
                 if ($relation->inherite ||
-                        (($fRec instanceof Record) && $v->value == "" &&
+                        (($fRec instanceof Record) && $v->value == 0 &&
                                 ($relation instanceof Relation) && ($relation->crossRel->isFTableArray()))) {
                     //echo " " . $relName . " ";
+                    //die();
                     //var_dump($relation->inherite);
                     //var_dump($relation->crossRel->isFTableArray());
                     //echo "<br />";
@@ -345,6 +351,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
         if (count($this->cell) == 0) {
             throw new \Exception("Call update on empty Record");
         }
+        $needUpdate = false;
         $query = "UPDATE `" . $this->table->name . "` SET ";
         foreach ($this->cell as $key => $value) {
             if (!in_array($key, $cells)) {
@@ -356,6 +363,10 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
                 //$query.= "`" . $key . "` = '" . addslashes($value->value) . "', ";
                 $query .= $value->getUpdateSql() . ", ";
             }
+            $needUpdate = true;
+        }
+        if(!$needUpdate) {
+            return false;
         }
         $query = substr($query, 0, -2);
         $pk = (string)$this->pKeyField;

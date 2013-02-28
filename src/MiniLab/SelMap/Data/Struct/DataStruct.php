@@ -16,10 +16,11 @@ use MiniLab\SelMap\Data\DataInterface;
 
 /**
  * @property int $itemsPerPage
- * @property-read array $table
- * @property-read array $row
- * @property-read int   $pagesCount
- * @property-read int   $itemsCount
+ * @property-read array                           $table
+ * @property-read array                           $row
+ * @property-read int                             $pagesCount
+ * @property-read int                             $itemsCount
+ * @property-read MiniLab\SelMap\Query\QueryMap   $map
  */
 class DataStruct extends DataStructBase {
     /**
@@ -89,7 +90,7 @@ class DataStruct extends DataStructBase {
      * @ignore
      */
     public function __get($name) {
-        $props = array("table", "row", "itemsPerPage", "pagesCount", "itemsCount");
+        $props = array("table", "row", "itemsPerPage", "pagesCount", "itemsCount", "map");
         if (in_array($name, $props)) {
             return $this->$name;
         }
@@ -168,7 +169,7 @@ class DataStruct extends DataStructBase {
      */
     public function &find(Path $path) {
         if (is_null($this->row)) {
-            $f = false;
+            $f = new EmptyCell();
             return $f;
         }
         $first = $path->first();
@@ -522,9 +523,14 @@ class DataStruct extends DataStructBase {
         if (count($toInsert) == 0) {
             return;
         }
-        $or = new OrAnd($this->db, "OR");
+        
+        $node = $this->map->find($origPath);
+        $map = $this->db->createMap();
+        $map->root = $node;
+        $ds = new DataStruct($map);
+        $where = $map->createWhere()->addOrAnd("OR")->where;
         foreach ($toInsert as $id) {
-            $or->addCase("`{@" . $fKey . "}` = " . $id);
+            $where->root->addEqualCase($id, new Path("@" . $fKey));
             $query = "INSERT INTO `" . $relation->relName . "` (`" . $inField . "`, `" . $inFField . "`) VALUES ('%1', '" . $id . "');";
             $this->onSave[] = function ($ds) use ($query, $path, $db) {
                 $id = $ds->find($path)->pk;
@@ -532,12 +538,6 @@ class DataStruct extends DataStructBase {
                 $db->execNonResult($query);
             };
         }
-        $node = $this->map->find($origPath);
-        $map = new QueryMap($this->db);
-        $map->root = $node;
-        $ds = new DataStruct($map);
-        $where = new Where($map);
-        $where->root = $or;
         $ds->select($where);
         foreach ($ds->row as $id => $row) {
             $records[$id] = $row;

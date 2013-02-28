@@ -15,7 +15,7 @@ class EmptyCell extends Cell
         throw new Exception("EmptyCell can not be saved in DB");
     }
     /**
-     * Is it real cell or null-pattern object (EmptyCell). EmptyCell allways return true
+     * Is it real cell or null-pattern object (EmptyCell). EmptyCell allways return 'true'
      *
      * @return boolean
      */

@@ -2,6 +2,8 @@
 
 namespace MiniLab\SelMap\Data\Struct;
 
+use MiniLab\SelMap\Data\VirtualCell;
+use MiniLab\SelMap\Data\EmptyCell;
 use MiniLab\SelMap\Path\Path;
 
 /**
@@ -14,7 +16,7 @@ class VirtualDataStruct extends DataStructBase {
     public $data = array();
     public function __construct($fields = array()) {
         foreach ($fields as $f) {
-            $this->data[$f] = "";
+            $this->data[$f] = new EmptyCell();
         }
     }
     public function &find(Path $path) {
@@ -22,14 +24,14 @@ class VirtualDataStruct extends DataStructBase {
         if (isset($this->data[$path])) {
             return $this->data[$path];
         }
-        $res = "";
-        return $res;
+        $f = new EmptyCell();
+        return $f;
     }
     public function createRecords() {
 
     }
     public function setFieldValue($value, Path $path) {
-        $this->data[$this->transformPath($path) ] = $value;
+        $this->data[$this->transformPath($path) ] = new VirtualCell($value);
     }
     protected function transformPath($path) {
         return substr((string)$path->first(), 1);

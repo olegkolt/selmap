@@ -68,7 +68,7 @@ class Cell implements \JsonSerializable, DataInterface
     {
         if ($name == "value") {
             $this->value = static::validateInput($value, $this->field);
-            $this->record->addModified($this->fieldName);
+            $this->record->addModified($this->field->name);
         }
         else{
             throw new \Exception("Can not set property " . $name);

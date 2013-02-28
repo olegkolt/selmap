@@ -36,9 +36,20 @@ class Rubles extends Cell
      */
     public static function moneyToDBFormat(Money $money)
     {
+        return static::splitMoney($money, ".");
+    }
+    public static function moneyToString(Money $money)
+    {
+        return static::splitMoney($money, ",");
+    }
+    private static function splitMoney(Money $money, $delimiter)
+    {
         $amount = (string)$money->getAmount();
+        if($amount == "0") {
+            return "0" . $delimiter . "00";
+        }
         $kopecks = substr($amount, -2);
         $rubles  = substr($amount, 0, -2);
-        return $rubles . "." . $kopecks;
+        return $rubles . $delimiter . $kopecks;
     }
 }

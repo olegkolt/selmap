@@ -9,8 +9,9 @@ abstract class DataStructBase implements DataStructInterface
     protected $onSave = array();
     /**
      * Set save handler function
+     * 
      * @param function $func
-    */
+     */
     public function setOnSave($func) {
         $this->onSave[] = $func;
     }
@@ -28,6 +29,7 @@ abstract class DataStructBase implements DataStructInterface
     }
     /**
      * Create one root record and related records if it is necessary
+     * 
      * @return mixed
      */
     public abstract function createRecords();
