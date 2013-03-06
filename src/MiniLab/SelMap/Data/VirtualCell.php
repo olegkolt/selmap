@@ -10,7 +10,7 @@ use MiniLab\SelMap\Data\DataInterface;
  * @author Oleg Koltunov
  *
  */
-class VirtualCell implements DataInterface
+class VirtualCell implements DataInterface, CellInterface
 {
     /**
      * @var mixed

@@ -13,13 +13,15 @@ use MiniLab\SelMap\Config\Config;
  * @property-read Where $where
  * 
  */
-class OrAnd {
+class OrAnd
+{
     protected $type;
     protected $values;
     protected $db;
     protected $where;
     
-    public function __construct($type = "AND", DataBase $db, Where $where) {
+    public function __construct($type = "AND", DataBase $db, Where $where)
+    {
         $type = strtoupper($type);
         if ($type != "AND" && $type != "OR") {
             throw new \InvalidArgumentException("type must be 'AND' or 'OR'");
@@ -32,7 +34,8 @@ class OrAnd {
     /**
      * @ignore
      */
-    public function __get($name){
+    public function __get($name)
+    {
         if($name == "where"){
             return $this->where;
         }
@@ -44,18 +47,22 @@ class OrAnd {
     public function __call($name, $arguments)
     {
         $operators = Config::get("operators");
-        preg_match("/^add(\w+)Case$/", $name, $matches);
-        if(!isset($matches[1]) || !isset($operators[$matches[1]])) {
+        preg_match("/^add(Date|)(\w+)Case$/", $name, $matches);
+        if(!isset($matches[2]) || !isset($operators[$matches[2]])) {
             throw new \BadMethodCallException("Method: " . $name . " does not exists");
         }
-        return $this->addComparisonCase($operators[$matches[1]], $arguments[0], $arguments[1]);
+        if($matches[1] == "") {
+            return $this->addComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
+        }
+        return $this->addDateComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
     }
     /**
      * Get object type: 'OR' or 'AND'
      *
      * @return string type.
      */
-    public function getType() {
+    public function getType()
+    {
         return $this->type;
     }
     /**
@@ -64,11 +71,11 @@ class OrAnd {
      * @param string $mixed Case string
      * return MiniLab\SelMap\Query\Where\OrAnd;
      */
-    public function addStringCase($mixed)
+    /*public function addStringCase($mixed)
     {
         $this->values[] = (string)$mixed;
         return $this;
-    }
+    }*/
     /**
      * Create OrAnd object
      *
@@ -92,7 +99,8 @@ class OrAnd {
         $this->values[] = $orAnd;
         return $orAnd;
     }
-    public function __toString() {
+    public function __toString()
+    {
         $output = "";
         $count = count($this->values);
         for ($i = 0;$i < $count;$i++) {
@@ -143,22 +151,44 @@ class OrAnd {
         $this->values[] = "`{" . $path . "}` LIKE '%" . $value . "%'";
         return $this;
     }
+    /**
+     * 
+     * @param string    $operator '=', '>=', '>' ...
+     * @param \DateTime $value
+     * @param Path      $path
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
+    protected function addDateComparisonCase($operator, \DateTime $value, Path $path)
+    {
+        $value = $this->validateValue($value, $path);
+        $this->values[] = "DATE(`{" . $path . "}`) " . $operator . " STR_TO_DATE('" . $value . "','%Y-%m-%d')";
+        return $this;
+    }
+    /**
+     * 
+     * @param string $operator '=', '>=', '>' ...
+     * @param mixed  $value
+     * @param Path   $path
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
     protected function addComparisonCase($operator, $value, Path $path)
     {
-        $f2 = function ($m) {
-            if(defined($m[1])) {
-                return constant($m[1]);
-            }
-            return $m[0];
-        };
-        
-        $value = preg_replace_callback("/^__(\w+?)__$/", $f2, $value);
         $value = $this->validateValue($value, $path);
         $this->values[] = "`{" . $path . "}` " . $operator . " '" . $value . "'";
         return $this;
     }
     protected function validateValue($value, Path $path)
     {
+        if(is_string($value)) {
+            $f2 = function ($m) {
+                if(defined($m[1])) {
+                    return constant($m[1]);
+                }
+                return $m[0];
+            };
+            $value = preg_replace_callback("/^__(\w+?)__$/", $f2, $value);
+        }
+        
         $fieldName = substr($path->last(), 1);
         $field = $this->where->map->find($path);
         $tableFields = $field->node->table->fields;

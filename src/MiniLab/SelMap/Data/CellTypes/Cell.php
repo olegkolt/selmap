@@ -2,6 +2,7 @@
 
 namespace MiniLab\SelMap\Data\CellTypes;
 
+use MiniLab\SelMap\Data\CellInterface;
 use MiniLab\SelMap\Data\RecordSet;
 use MiniLab\SelMap\Data\Record;
 use MiniLab\SelMap\Model\Field;
@@ -16,7 +17,7 @@ use MiniLab\SelMap\Data\DataInterface;
  * @property-read Field  $field
  * @property      string $value  The value of Cell
  */
-class Cell implements \JsonSerializable, DataInterface
+class Cell implements \JsonSerializable, DataInterface, CellInterface
 {
     /**
      * @var mixed
