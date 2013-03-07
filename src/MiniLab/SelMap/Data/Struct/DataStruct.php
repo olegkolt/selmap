@@ -123,6 +123,7 @@ class DataStruct extends DataStructBase {
                     if(isset($a[1])) {
                         list($fld, $val) = $a;
                         $val = trim($val, "'\"");
+                        $f = false;
                         foreach ($next as $k => $r) {
                             if($r[$fld]->value == $val) {
                                 $rec = $next[$k];
