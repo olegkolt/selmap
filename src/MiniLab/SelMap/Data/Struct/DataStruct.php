@@ -217,7 +217,7 @@ class DataStruct extends DataStructBase {
      * @return void
      */
     public function clean() {
-        $this->row = array();
+        $this->row = new RecordSet();
         $this->table = array();
     }
     protected function createRecordRels(Record $rec, TableNode $sNode) {
@@ -430,7 +430,7 @@ class DataStruct extends DataStructBase {
                             $this->eachNode($child, $sNode, $r);
                         }
                     } else {
-                        $parent[$name]->rel[$relName] = array();
+                        $parent[$name]->rel[$relName] = new RecordSet();
                     }
                 } else {
                     if (isset($r[$sNode->aliasName])) {
