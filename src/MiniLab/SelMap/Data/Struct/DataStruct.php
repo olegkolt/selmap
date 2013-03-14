@@ -437,6 +437,9 @@ class DataStruct extends DataStructBase {
                         $id = $r[$sNode->aliasName];
                         if (isset($this->table[$tableName][$id])) {
                             $child = $this->table[$tableName][$id];
+                            if(!isset($parent[$name])) {
+                                $parent[$name] = $id;
+                            }
                             $parent[$name]->addSingleRel($relName, $child);
                             //$parent->addRel($name, $tableName, $fName, $child);
                             $this->eachNode($child, $sNode, $r);
