@@ -197,6 +197,6 @@ class OrAnd
         }
         $tableField = $tableFields[$fieldName];
         $type = DataBase::CELL_TYPES_NAMESPACE . $tableField->type;
-        return $type::validateInput($value, $tableField);
+        return $type::validateInput($value, $tableField, $this->db);
     }
 }

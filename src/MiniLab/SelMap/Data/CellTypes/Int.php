@@ -2,9 +2,11 @@
 
 namespace MiniLab\SelMap\Data\CellTypes;
 
+use MiniLab\SelMap\DataBase;
+
 class Int extends Cell
 {
-    public static function input($value)
+    public static function input($value, DataBase $db)
     {
         if($value == "") {
             $value = 0;
@@ -14,7 +16,7 @@ class Int extends Cell
         }
         return (int)$value;
     }
-    public static function output($value)
+    public static function output($value, DataBase $db)
     {
         return (int)$value;
     }

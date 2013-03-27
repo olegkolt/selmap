@@ -7,6 +7,7 @@ use MiniLab\SelMap\Data\RecordSet;
 use MiniLab\SelMap\Data\Record;
 use MiniLab\SelMap\Model\Field;
 use MiniLab\SelMap\Data\DataInterface;
+use MiniLab\SelMap\DataBase;
 
 /**
  *
@@ -37,20 +38,26 @@ class Cell implements \JsonSerializable, DataInterface, CellInterface
     protected $field;
     /**
      * 
-     * @param string $value Cell value
-     * @param Record $rec   Current record
+     * @var MiniLab\SelMap\DataBase
+     */
+    protected $db;
+    /**
+     * 
+     * @param string $value    Cell value
+     * @param Record $rec      Current record
      * @param Field  $field
      * @param bool   $isFromDB
      */
     public function __construct($value, Record $rec, Field $field, $isFromDB = false)
     {
         $this->record = $rec;
+        $this->db = $rec->db;
         $this->field = $field;
         $this->rel = new RecordSet();
         if($isFromDB) {
-            $this->value = static::validateOutput($value, $this->field);
+            $this->value = static::validateOutput($value, $this->field, $this->db);
         } else {
-            $this->value = static::validateInput($value, $this->field);
+            $this->value = static::validateInput($value, $this->field, $this->db);
         }
     }
     /**
@@ -68,7 +75,7 @@ class Cell implements \JsonSerializable, DataInterface, CellInterface
     public function __set($name, $value)
     {
         if ($name == "value") {
-            $this->value = static::validateInput($value, $this->field);
+            $this->value = static::validateInput($value, $this->field, $this->db);
             $this->record->addModified($this->field->name);
         }
         else{
@@ -146,7 +153,7 @@ class Cell implements \JsonSerializable, DataInterface, CellInterface
      */
     public function escapeValue()
     {
-        $link = $this->record->table->db->getConn();
+        $link = $this->db->getConn();
         return $link->real_escape_string($this->value);
     }
     /**
@@ -161,25 +168,25 @@ class Cell implements \JsonSerializable, DataInterface, CellInterface
         }
         return $result;
     }
-    public static function validateInput($value, Field $field)
+    public static function validateInput($value, Field $field, DataBase $db)
     {
         if(is_null($value) && $field->isNullable()) {
             return null;
         }
-        return static::input($value);
+        return static::input($value, $db);
     }
-    public static function validateOutput($value, Field $field)
+    public static function validateOutput($value, Field $field, DataBase $db)
     {
         if(is_null($value) && $field->isNullable()) {
             return null;
         }
-        return static::output($value);
+        return static::output($value, $db);
     }
-    public static function input($value)
+    public static function input($value, DataBase $db)
     {
         return $value;
     }
-    public static function output($value)
+    public static function output($value, DataBase $db)
     {
         return $value;
     }

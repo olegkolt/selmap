@@ -4,10 +4,11 @@ namespace MiniLab\SelMap\Data\CellTypes;
 
 use Money\Money;
 use Money\Currency;
+use MiniLab\SelMap\DataBase;
 
 class Rubles extends Cell
 {
-    public static function input($value)
+    public static function input($value, DataBase $db)
     {
         //echo "input,";
         if(!($value instanceof Money)) {
@@ -19,7 +20,7 @@ class Rubles extends Cell
         }
         return $value;
     }
-    public static function output($value)
+    public static function output($value, DataBase $db)
     {
         //echo "output,";
         return Money::RUB(Money::stringToUnits($value));

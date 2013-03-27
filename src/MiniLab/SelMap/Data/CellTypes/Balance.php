@@ -25,7 +25,7 @@ class Balance extends Rubles
         if($isFromDB === false) {
             $value = 0;
         }
-        $this->initialValue = Rubles::output($value);
+        $this->initialValue = Rubles::output($value, $this->db);
     }
     public function getUpdateSql()
     {

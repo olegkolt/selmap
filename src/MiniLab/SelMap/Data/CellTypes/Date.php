@@ -3,17 +3,18 @@
 namespace MiniLab\SelMap\Data\CellTypes;
 
 use DateTime as DT;
+use MiniLab\SelMap\DataBase;
 
 class Date extends Cell
 {
-    public static function input($value)
+    public static function input($value, DataBase $db)
     {
         if(!($value instanceof DT)) {
             throw new \InvalidArgumentException("Must be instance of DateTime");
         }
         return $value->format('Y-m-d');
     }
-    public static function output($value)
+    public static function output($value, DataBase $db)
     {
         return new DT($value);
     }

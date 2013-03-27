@@ -11,9 +11,10 @@ use MiniLab\SelMap\Model\Relation;
  * Record class represent db single row
  * 
  * @author Oleg Koltunov <olegkolt@mail.ru>
- * @property-read Field  $pKeyField Primary key field name
- * @property-read string $pk        Value of record's primary key
- * @property-read Table  $table     Table object
+ * @property-read Field    $pKeyField Primary key field name
+ * @property-read string   $pk        Value of record's primary key
+ * @property-read Table    $table     Table object
+ * @property-read DataBase $db        DataBase object
  */
 class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterface
 {
@@ -99,7 +100,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
      */
     public function __get($name)
     {
-        $props = array("pKeyField", "pk", "table");
+        $props = array("pKeyField", "pk", "table", "db");
         if (in_array($name, $props)) {
             return $this->$name;
         }
