@@ -15,9 +15,25 @@ use MiniLab\SelMap\Config\Config;
  */
 class OrAnd
 {
+    /**
+     * 
+     * @var string "AND" or "OR"
+     */
     protected $type;
+    /**
+     * 
+     * @var array
+     */
     protected $values;
+    /**
+     * 
+     * @var MiniLab\SelMap\DataBase
+     */
     protected $db;
+    /**
+     * 
+     * @var MiniLab\SelMap\Query\Where\Where
+     */
     protected $where;
     
     public function __construct($type = "AND", DataBase $db, Where $where)
@@ -65,17 +81,6 @@ class OrAnd
     {
         return $this->type;
     }
-    /**
-     * Deprecated. Compatibility reasons 
-     * 
-     * @param string $mixed Case string
-     * return MiniLab\SelMap\Query\Where\OrAnd;
-     */
-    /*public function addStringCase($mixed)
-    {
-        $this->values[] = (string)$mixed;
-        return $this;
-    }*/
     /**
      * Create OrAnd object
      *
@@ -197,6 +202,7 @@ class OrAnd
         }
         $tableField = $tableFields[$fieldName];
         $type = DataBase::CELL_TYPES_NAMESPACE . $tableField->type;
-        return $type::validateInput($value, $tableField, $this->db);
+        $value = $type::validateInput($value, $tableField, $this->db);
+        return $this->db->getConn()->real_escape_string($value);
     }
 }
