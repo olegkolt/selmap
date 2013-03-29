@@ -292,18 +292,9 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
                 }
 
                 $relation = $this->table->fields[$field]->rel[$relName];
-                //var_dump($relation->crossRel->isFTableArray());
-                //var_dump($v->value);
-                //echo "!";
-                //die();
                 if ($relation->inherite ||
                         (($fRec instanceof Record) && $v->value == 0 &&
                                 ($relation instanceof Relation) && ($relation->crossRel->isFTableArray()))) {
-                    //echo " " . $relName . " ";
-                    //die();
-                    //var_dump($relation->inherite);
-                    //var_dump($relation->crossRel->isFTableArray());
-                    //echo "<br />";
                     $v->value = $fRec->save()->value;
                 }
             }
@@ -315,7 +306,6 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
             if (is_null($v->value)) {
                 $values[] = "NULL";
             } else {
-                //$values[] = "'" . addslashes((string)$v->value) . "'";
                 $values[] = "'" . $v->escapeValue() . "'";
             }
         }

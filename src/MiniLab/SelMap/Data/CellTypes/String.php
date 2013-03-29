@@ -8,8 +8,7 @@ class String extends Cell
 {
     public static function input($value, DataBase $db)
     {
-        $link = $db->getConn();
-        return $link->real_escape_string(strval($value));
+        return strval($value);
     }
     public static function output($value, DataBase $db)
     {
