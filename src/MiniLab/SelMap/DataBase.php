@@ -10,26 +10,61 @@ use MiniLab\SelMap\Model\MRelation;
 use MiniLab\SelMap\Query\QueryMap;
 
 /**
- *
- * Enter description here ...
+ * DataBase object
+ * 
  * @author Oleg Koltunov <olegkolt@mail.ru>
  *
  */
-class DataBase {
+class DataBase
+{
+    /**
+     * All tables. Array("tableName" => Table)
+     * 
+     * @var array
+     */
     protected $tables;
+    /**
+     * Connection
+     * 
+     * @var \mysqli
+     */
     protected $conn;
+    /**
+     * Database name
+     * 
+     * @var string
+     */
     protected $name = "";
+    /**
+     * Executed queries log. Array("SELECT..", "UPDATE...",..) 
+     * 
+     * @var array
+     */
     protected $queryLog;
+    /**
+     * Option. 'True' demand to use transactions. Default 'false'
+     * 
+     * @var bool
+     */
     protected $useTransactions = false;
+    /**
+     * Last opened transaction id. Value increment for each next transaction
+     * 
+     * @var int
+     */
     protected $transactionId;
     
     const CELL_TYPES_NAMESPACE = "MiniLab\\SelMap\\Data\\CellTypes\\";
-
-    public function __construct() {
+    /**
+     * Create a new DataBase
+     */
+    public function __construct()
+    {
         $this->tables = array();
         $this->queryLog = array();
     }
     /**
+     * Add new table
      * 
      * @param Table $table
      * @return void
@@ -44,7 +79,8 @@ class DataBase {
      * @param string $tableName
      * @return Table Table object
      */
-    public function getTable($tableName){
+    public function getTable($tableName)
+    {
         if(isset($this->tables[$tableName])){
             return $this->tables[$tableName];
         }
@@ -55,7 +91,8 @@ class DataBase {
      *
      * @return array query log.
      */
-    public function getQueryLog(){
+    public function getQueryLog()
+    {
         return $this->queryLog;
     }
     /**
@@ -64,12 +101,22 @@ class DataBase {
      * @param bool $option
      * @return void
      */
-    public function setTransactionsOption($option){
+    public function setTransactionsOption($option)
+    {
         if(is_bool($option)){
             $this->useTransactions = $option;
         }
     }
-    public function createOneToManyRel($table, $field, $fTable) {
+    /**
+     * Create one to many relation
+     * 
+     * @param string $table
+     * @param string $field
+     * @param string $fTable
+     * @return void
+     */
+    public function createOneToManyRel($table, $field, $fTable)
+    {
         $t = $this->tables[$table];
         $ft = $this->tables[$fTable];
         $relation = new Relation($t, $field, $ft, $ft->pKeyField);
@@ -79,7 +126,16 @@ class DataBase {
         $t->fields[$field]->setRel($fTable . ":" . $ft->pKeyField, $relation);
         $ft->pKeyField->setRel($table . ":" . $field, $crossRelation);
     }
-    public function createInheriteRel($table, $field, $fTable) {
+    /**
+     * Create inherite (one to one) relation
+     * 
+     * @param string $table
+     * @param string $field
+     * @param string $fTable
+     * @return void
+     */
+    public function createInheriteRel($table, $field, $fTable)
+    {
         $t = $this->tables[$table];
         $ft = $this->tables[$fTable];
         $relation = new Relation($t, $field, $ft, $ft->pKeyField);
@@ -91,7 +147,18 @@ class DataBase {
         $t->fields[$field]->setRel($fTable . ":" . $ft->pKeyField, $relation);
         $ft->pKeyField->setRel($table . ":" . $field, $crossRelation);
     }
-    public function createManyToManyRel($name, $table, $key, $fTable, $fKey) {
+    /**
+     * Create many to many relation
+     * 
+     * @param string $name
+     * @param string $table
+     * @param string $key
+     * @param string $fTable
+     * @param string $fKey
+     * @return void
+     */
+    public function createManyToManyRel($name, $table, $key, $fTable, $fKey)
+    {
         $t = $this->tables[$table];
         $ft = $this->tables[$fTable];
         $relation = new MRelation($name, $t, $key, $ft, $fKey);
@@ -105,8 +172,10 @@ class DataBase {
      * @param string $user     Database user
      * @param string $password Users Password
      * @param string $database Database name
+     * @return void
      */
-    public function connect($host, $user, $password, $database) {
+    public function connect($host, $user, $password, $database)
+    {
         $this->name = $database;
         $this->conn = new \mysqli($host, $user, $password, $database);
         /* check connection */
@@ -118,10 +187,24 @@ class DataBase {
         $this->execNonResult("set names utf8");
         $this->conn->set_charset("utf8");
     }
-    protected function storeQuery($query) {
+    /**
+     * Store executed SQL query
+     * 
+     * @param string $query
+     * @return void
+     */
+    protected function storeQuery($query)
+    {
         $this->queryLog[] = $query;
     }
-    public function execNonResult($query) {
+    /**
+     * Execute SQL query. Do not return result
+     * 
+     * @param string $query SQL query
+     * @return void
+     */
+    public function execNonResult($query)
+    {
         $this->storeQuery($query);
         if ($this->conn->query($query) === false) {
             $this->mysqlError($query, $this->conn->error);
@@ -133,7 +216,8 @@ class DataBase {
      * @param string $query
      * @return mysqli_result
      */
-    public function exec($query) {
+    public function exec($query)
+    {
         $this->storeQuery($query);
         $result = $this->conn->query($query, MYSQLI_USE_RESULT);
         if ($result !== false) {
@@ -146,7 +230,8 @@ class DataBase {
      * 
      * @return int transaction id
      */
-    public function startTransaction() {
+    public function startTransaction()
+    {
         if ($this->useTransactions && is_null($this->transactionId)) {
             $this->execNonResult("START TRANSACTION;");
             return ++$this->transactionId;
@@ -157,10 +242,10 @@ class DataBase {
      * Commit transaction, if transacton id is the last started
      * 
      * @param int $id Transaction id
-     *
      * @return bool
      */
-    public function commitTransaction($id) {
+    public function commitTransaction($id)
+    {
         if ($this->useTransactions && $this->transactionId == $id) {
             $this->execNonResult("COMMIT;");
             $this->transactionId = null;
@@ -172,10 +257,10 @@ class DataBase {
      * Rollback transaction, if transacton id is the last started
      * 
      * @param int $id Transaction id
-     *
      * @return bool
      */
-    public function rollbackTransaction($id) {
+    public function rollbackTransaction($id)
+    {
         if ($this->useTransactions && $this->transactionId == $id) {
             $this->execNonResult("ROLLBACK;");
             $this->transactionId = null;
@@ -183,7 +268,13 @@ class DataBase {
         }
         return false;
     }
-    public function insertId() {
+    /**
+     * Get last instert id
+     * 
+     * @return int
+     */
+    public function insertId()
+    {
         return $this->conn->insert_id;
     }
     /**
@@ -191,10 +282,17 @@ class DataBase {
      * 
      * @return \mysqli The connection
      */
-    public function getConn() {
+    public function getConn()
+    {
         return $this->conn;
     }
-    public function close() {
+    /**
+     * Close db connection
+     * 
+     * @return void
+     */
+    public function close()
+    {
         $this->conn->close();
     }
     /**
@@ -206,7 +304,15 @@ class DataBase {
     {
         return new QueryMap($this);
     }
-    protected function mysqlError($query, $message) {
+    /**
+     * Trow an exception
+     * 
+     * @param string $query
+     * @param string $message
+     * @throws \MiniLab\SelMap\DBException
+     */
+    protected function mysqlError($query, $message)
+    {
         $e = new DBException("MySQL query error (" . $message . "): " . $query);
         $e->sql = $query;
         $e->dbMessage = $message;
