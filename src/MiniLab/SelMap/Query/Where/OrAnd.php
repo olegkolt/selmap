@@ -11,31 +11,58 @@ use MiniLab\SelMap\Config\Config;
  *
  * @author Oleg Koltunov <olegkolt@mail.ru>
  * @property-read Where $where
+ * @method OrAnd addEqualCase(mixed $value, Path $path) Add case like: `field` = 'value'
+ * @method OrAnd addNotEqualCase(mixed $value, Path $path) Add case like: `field` != 'value'
+ * @method OrAnd addLikeCase(mixed $value, Path $path) Add case like: `field` LIKE 'value'
+ * @method OrAnd addNotLikeCase(mixed $value, Path $path) Add case like: `field` NOT LIKE 'value'
+ * @method OrAnd addGreaterCase(mixed $value, Path $path) Add case like: `field` > 'value'
+ * @method OrAnd addGreaterOrEqualCase(mixed $value, Path $path) Add case like: `field` >= 'value'
+ * @method OrAnd addLessCase(mixed $value, Path $path) Add case like: `field` < 'value'
+ * @method OrAnd addLessOrEqualCase(mixed $value, Path $path) Add case like: `field` <= 'value'
+ * @method OrAnd addEqualCase(Path $path, Path $contrPath) Add case like: `field` = `field`
+ * @method OrAnd addNotEqualCase(Path $path, Path $contrPath) Add case like: `field` != `field`
+ * @method OrAnd addLikeCase(Path $path, Path $contrPath) Add case like: `field` LIKE `field`
+ * @method OrAnd addNotLikeCase(Path $path, Path $contrPath) Add case like: `field` NOT LIKE `field`
+ * @method OrAnd addGreaterCase(Path $path, Path $contrPath) Add case like: `field` > `field`
+ * @method OrAnd addGreaterOrEqualCase(Path $path, Path $contrPath) Add case like: `field` >= `field`
+ * @method OrAnd addLessCase(Path $path, Path $contrPath) Add case like: `field` < `field`
+ * @method OrAnd addLessOrEqualCase(Path $path, Path $contrPath) Add case like: `field` <= `field`
  * 
  */
 class OrAnd
 {
     /**
+     * OrAnd type
      * 
      * @var string "AND" or "OR"
      */
     protected $type;
     /**
+     * Array of OrAnd objects or values
      * 
      * @var array
      */
     protected $values;
     /**
+     * DataBase instance
      * 
      * @var MiniLab\SelMap\DataBase
      */
     protected $db;
     /**
+     * Where owner
      * 
      * @var MiniLab\SelMap\Query\Where\Where
      */
     protected $where;
-    
+    /**
+     * Create a new OrAnd
+     * 
+     * @param string   $type
+     * @param DataBase $db
+     * @param Where    $where
+     * @throws \InvalidArgumentException Type must be 'AND' or 'OR'
+     */
     public function __construct($type = "AND", DataBase $db, Where $where)
     {
         $type = strtoupper($type);
@@ -68,7 +95,13 @@ class OrAnd
             throw new \BadMethodCallException("Method: " . $name . " does not exists");
         }
         if($matches[1] == "") {
+            if($arguments[0] instanceof Path){
+                return $this->addContrComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
+            }
             return $this->addComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
+        }
+        if($arguments[0] instanceof Path){
+            return $this->addDateContrComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
         }
         return $this->addDateComparisonCase($operators[$matches[2]], $arguments[0], $arguments[1]);
     }
@@ -104,6 +137,11 @@ class OrAnd
         $this->values[] = $orAnd;
         return $orAnd;
     }
+    /**
+     * Get SQL string
+     * 
+     * @return string
+     */
     public function __toString()
     {
         $output = "";
@@ -122,7 +160,7 @@ class OrAnd
         return $output;
     }
     /**
-     * Add IS NULL case
+     * Add IS NULL case: `field` IS NULL
      * 
      * @param Path $path
      * @return \MiniLab\SelMap\Query\Where\OrAnd
@@ -133,7 +171,7 @@ class OrAnd
         return $this;
     }
     /**
-     * Add IS NOT NULL case
+     * Add IS NOT NULL case: `field` IS NOT NULL
      * 
      * @param Path $path
      * @return \MiniLab\SelMap\Query\Where\OrAnd
@@ -144,7 +182,7 @@ class OrAnd
         return $this;
     }
     /**
-     * Add LIKE case with percents: LIKE '%value%'
+     * Add LIKE case with percents: `field` LIKE '%value%'
      * 
      * @param string $value
      * @param Path   $path
@@ -157,6 +195,7 @@ class OrAnd
         return $this;
     }
     /**
+     * Comapare with date
      * 
      * @param string    $operator '=', '>=', '>' ...
      * @param \DateTime $value
@@ -170,6 +209,20 @@ class OrAnd
         return $this;
     }
     /**
+     * Comapare with date: comparison two fields
+     *
+     * @param string $operator '=', '>=', '>' ...
+     * @param Path   $path
+     * @param Path   $contrPath
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
+    protected function addDateContrComparisonCase($operator, Path $path, Path $contrPath)
+    {
+        $this->values[] = "DATE(`{" . $path . "}`) " . $operator . " DATE(`{" . $contrPath . "}`)";
+        return $this;
+    }
+    /**
+     * Add new case
      * 
      * @param string $operator '=', '>=', '>' ...
      * @param mixed  $value
@@ -182,6 +235,27 @@ class OrAnd
         $this->values[] = "`{" . $path . "}` " . $operator . " '" . $value . "'";
         return $this;
     }
+    /**
+     * Add new case: comparison two fields
+     *
+     * @param string $operator '=', '>=', '>' ...
+     * @param Path   $path
+     * @param Path   $contrPath
+     * @return \MiniLab\SelMap\Query\Where\OrAnd
+     */
+    protected function addContrComparisonCase($operator, Path $path, Path $contrPath)
+    {
+        $this->values[] = "`{" . $path . "}` " . $operator . " `{" . $contrPath . "}`";
+        return $this;
+    }
+    /**
+     * Place constants and validate field type. Returns escaped string
+     * 
+     * @param mixed $value
+     * @param Path  $path
+     * @throws \Exception If table field not found
+     * @return string
+     */
     protected function validateValue($value, Path $path)
     {
         if(is_string($value)) {

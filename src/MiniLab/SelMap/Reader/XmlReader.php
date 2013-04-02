@@ -11,14 +11,22 @@ use MiniLab\SelMap\Path\Path;
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\Model\TreeTable;
 use MiniLab\SelMap\Model\Field;
-
+/**
+ * XmlReader reads XML input data: schema, query map and where conditions
+ * 
+ * @author Oleg Koltunov <olegkolt@mail.ru>
+ *
+ */
 class XmlReader
 {
     /**
+     * DataBase instance
+     * 
      * @var DataBase
      */
     protected $db;
     /**
+     * Create a new XmlReader
      * 
      * @param DataBase $db
      */
@@ -114,6 +122,7 @@ class XmlReader
         }
     }
     /**
+     * Read query map
      * 
      * @param \DOMElement $domNode
      * @return MiniLab\SelMap\Query\QueryMap
@@ -216,6 +225,9 @@ class XmlReader
                 if($child->hasAttribute("Value")) {
                     $value = $child->getAttribute("Value");
                     $sCase->$method($value, $path);
+                } elseif($child->hasAttribute("ContrPath")){
+                    $contrPath = new Path($child->getAttribute("ContrPath"));
+                    $sCase->$method($path, $contrPath);
                 } else {
                     $sCase->$method($path);
                 }

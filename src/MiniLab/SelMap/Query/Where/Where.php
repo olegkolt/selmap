@@ -11,10 +11,28 @@ use MiniLab\SelMap\Query\QueryMap;
  * @property      OrAnd    $root Root OrAnd node
  * @property-read QueryMap $map
  */
-class Where {
+class Where
+{
+    /**
+     * This query map
+     * 
+     * @var MiniLab\SelMap\Query\QueryMap
+     */
     protected $map;
+    /**
+     * Root comparison case
+     * 
+     * @var OrAnd
+     */
     protected $root;
-    public function __construct(QueryMap $map, OrAnd $root = null) {
+    /**
+     * Create a new Where
+     * 
+     * @param QueryMap $map
+     * @param OrAnd    $root Default null
+     */
+    public function __construct(QueryMap $map, OrAnd $root = null)
+    {
         $this->map = $map;
         if (!is_null($root)) {
             $this->root = $root;
@@ -23,7 +41,8 @@ class Where {
     /**
      * @ignore
      */
-    public function __get($name){
+    public function __get($name)
+    {
         if($name == "root" || $name == "map"){
             return $this->$name;
         }
@@ -32,7 +51,8 @@ class Where {
     /**
      * @ignore
      */
-    public function __set($name, $value){
+    public function __set($name, $value)
+    {
         if($name == "root" && $value instanceof OrAnd){
             $this->root = $value;
             return;
@@ -50,6 +70,11 @@ class Where {
         $this->root = new OrAnd($type, $this->map->db, $this);
         return $this->root;
     }
+    /**
+     * Get WHERE SQL statement
+     * 
+     * @return string SQL code
+     */
     public function getSQL() {
         $sql = (string)$this->root;
         return $this->map->queryReadPaths($sql);
