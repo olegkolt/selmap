@@ -1,4 +1,12 @@
-<?php 
+<?php
+/**
+ * This file is part of the SelMap package.
+ *
+ * (c) Oleg Koltunov <olegkolt@mail.ru>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MiniLab\SelMap\Query\Where;
 
@@ -195,7 +203,7 @@ class OrAnd
         return $this;
     }
     /**
-     * Comapare with date
+     * Compare with date
      * 
      * @param string    $operator '=', '>=', '>' ...
      * @param \DateTime $value
@@ -209,7 +217,7 @@ class OrAnd
         return $this;
     }
     /**
-     * Comapare with date: comparison two fields
+     * Compare with date: comparison two fields
      *
      * @param string $operator '=', '>=', '>' ...
      * @param Path   $path

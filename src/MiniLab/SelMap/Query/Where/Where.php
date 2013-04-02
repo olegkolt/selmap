@@ -1,4 +1,12 @@
-<?php 
+<?php
+/**
+ * This file is part of the SelMap package.
+ *
+ * (c) Oleg Koltunov <olegkolt@mail.ru>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MiniLab\SelMap\Query\Where;
 
