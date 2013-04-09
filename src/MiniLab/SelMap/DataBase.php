@@ -61,8 +61,18 @@ class DataBase
      * @var int
      */
     protected $transactionId;
-    
+    /**
+     * Namespace for cell types
+     * 
+     * @var string
+     */
     const CELL_TYPES_NAMESPACE = "MiniLab\\SelMap\\Data\\CellTypes\\";
+    /**
+     * Character encoding
+     * 
+     * @var string
+     */
+    const ENCODING = "utf8";
     /**
      * Create a new DataBase
      */
@@ -190,10 +200,10 @@ class DataBase
         if (mysqli_connect_errno()) {
             $this->mysqlError("Connect failed: " . mysqli_connect_error());
         }
-        $this->execNonResult("set character_set_client='utf8'");
-        $this->execNonResult("set character_set_results='utf8'");
-        $this->execNonResult("set names utf8");
-        $this->conn->set_charset("utf8");
+        $this->execNonResult(sprintf("set character_set_client='%s'", self::ENCODING));
+        $this->execNonResult(sprintf("set character_set_results='%s'", self::ENCODING));
+        $this->execNonResult("set names " . self::ENCODING);
+        $this->conn->set_charset(self::ENCODING);
     }
     /**
      * Store executed SQL query
