@@ -51,6 +51,9 @@ class Rubles extends Cell
         }
         $kopecks = substr($amount, -2);
         $rubles  = substr($amount, 0, -2);
+        if($rubles == "") {
+            $rubles = 0;
+        }
         return $rubles . $delimiter . $kopecks;
     }
 }
