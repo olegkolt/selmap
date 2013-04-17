@@ -336,6 +336,10 @@ class DataStruct extends DataStructBase {
         if (!($where instanceof Where) && !is_null($where)) {
             throw new \InvalidArgumentException("\$where must be instance of 'Where' or null");
         }
+        if($pageNo !== false && $pageNo < 1) {
+            throw new \InvalidArgumentException("\$pageNo must be greater than 0 or false");
+        }
+        
         $order = $this->orderPrepare($queryParts["selectOrder"]);
         if ($queryParts["hasBranching"] && (!is_null($where) || $pageNo !== false)) {
             $where = $this->preliminarySelect($queryParts, $where, $order, $pageNo, $noSupply);
