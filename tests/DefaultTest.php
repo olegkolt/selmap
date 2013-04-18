@@ -108,6 +108,17 @@ class DefaultTest extends SelMapConnectedTest
         $ds->select(null, 1);
         $this->assertEquals($itemsCount, count($ds->row));
     }
+    public function testPagedBranchedOverFlow()
+    {
+        $itemsCount = 5;
+        $reader = new XmlReader($this->db);
+        $map = $reader->readMap(XmlReader::readXmlFile(__DIR__ . "/simpleMap.xml"));
+        
+        $ds = new DataStruct($map);
+        $ds->itemsPerPage = $itemsCount;
+        $ds->select(null, 10);
+        $this->assertEquals(0, count($ds->row));
+    }
     public function testPagedBranched()
     {
         $itemsCount = 5;

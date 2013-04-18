@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the SelMap package.
+ *
+ * (c) Oleg Koltunov <olegkolt@mail.ru>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MiniLab\SelMap\Data\Struct;
 
@@ -15,35 +23,50 @@ use MiniLab\SelMap\Query\TableNode;
 use MiniLab\SelMap\Data\DataInterface;
 
 /**
+ * Base class for SQL query and data storing
+ * 
  * @property int $itemsPerPage
- * @property-read array                           $table
- * @property-read array                           $row
+ * @property-read array                           $table      Records for each table in map
+ * @property-read array                           $row        Root table records
  * @property-read int                             $pagesCount
  * @property-read int                             $itemsCount
  * @property-read MiniLab\SelMap\Query\QueryMap   $map
  */
-class DataStruct extends DataStructBase {
+class DataStruct extends DataStructBase
+{
     /**
+     * Query map
+     * 
      * @var MiniLab\SelMap\Query\QueryMap
      */
     protected $map;
     /**
+     * Query where
+     * 
      * @var MiniLab\SelMap\Query\Where\Where
      */
     protected $where;
     /**
+     * Name of root table
+     * 
      * @var string
      */
     protected $rootTableName;
     /**
+     * DataBase link
+     * 
      * @var MiniLab\SelMap\DataBase;
      */
     protected $db;
     /**
+     * Records for each table in map. Ex.: $ds->table['tableName']
+     * 
      * @var array(MiniLab\SelMap\Data\RecordSet)
      */
     protected $table = array();
     /**
+     * Root table records
+     * 
      * @var MiniLab\SelMap\Data\RecordSet
      */
     protected $row;
@@ -70,7 +93,8 @@ class DataStruct extends DataStructBase {
      * 
      * @param QueryMap $map
      */
-    public function __construct(QueryMap $map) {
+    public function __construct(QueryMap $map)
+    {
         $this->map = $map;
         $this->db = $map->db;
         $this->rootTableName = $this->map->root->table->name;
@@ -79,8 +103,9 @@ class DataStruct extends DataStructBase {
     /**
      * @ignore
      */
-    public function __set($name, $value) {
-        if ($name == "itemsPerPage" && is_numeric($value)) {
+    public function __set($name, $value)
+    {
+        if ($name == "itemsPerPage" && is_numeric($value)){
             $this->itemsPerPage = (int)$value;
             return;
         }
@@ -89,7 +114,8 @@ class DataStruct extends DataStructBase {
     /**
      * @ignore
      */
-    public function __get($name) {
+    public function __get($name)
+    {
         $props = array("table", "row", "itemsPerPage", "pagesCount", "itemsCount", "map");
         if (in_array($name, $props)) {
             return $this->$name;
@@ -102,7 +128,8 @@ class DataStruct extends DataStructBase {
      * @param  Path          $path
      * @return DataInterface Cell, Record, RecordSet or EmptyCell
      */
-    public static function &search(DataInterface $subject, Path $path) {
+    public static function &search(DataInterface $subject, Path $path)
+    {
         //echo $path . "<br /";
         $rec = & $subject;
         foreach ($path as $el) {
@@ -167,8 +194,10 @@ class DataStruct extends DataStructBase {
      * Find relative to DataStruct::$row
      * 
      * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::find()
+     * @param Path $path
      */
-    public function &find(Path $path) {
+    public function &find(Path $path)
+    {
         if (is_null($this->row)) {
             $f = new EmptyCell();
             return $f;
@@ -181,10 +210,14 @@ class DataStruct extends DataStructBase {
         return DataStruct::search($this->row, $path);
     }
     /**
-     * (non-PHPdoc)
+     * Set field value
+     * 
      * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::setFieldValue()
+     * @param mixed $value
+     * @param Path  $path
      */
-    public function setFieldValue($value, Path $path) {
+    public function setFieldValue($value, Path $path)
+    {
         $field = $path->last();
         if ($field->getType() == PathNodeType::FIELD) {
             $field = substr($field, 1);
@@ -202,10 +235,13 @@ class DataStruct extends DataStructBase {
         return $rec[$field];
     }
     /**
+     * Create one root record and related records if it is necessary
+     * 
      * @see \MiniLab\SelMap\Data\Struct\DataStructBase::createRecords()
      * @return Record New root record
      */
-    public function createRecords() {
+    public function createRecords()
+    {
         $rec = $this->createRecord($this->map->root->table);
         $this->row[] = $rec;
         $this->createRecordRels($rec, $this->map->root);
@@ -216,11 +252,19 @@ class DataStruct extends DataStructBase {
      * 
      * @return void
      */
-    public function clean() {
+    public function clean()
+    {
         $this->row = new RecordSet();
         $this->table = array();
     }
-    protected function createRecordRels(Record $rec, TableNode $sNode) {
+    /**
+     * Define record relations
+     * 
+     * @param Record    $rec
+     * @param TableNode $sNode
+     */
+    protected function createRecordRels(Record $rec, TableNode $sNode)
+    {
         foreach ($sNode->fields as $field => $v) {
             foreach ($v->rel as $relName => $childNode) {
                 list($fTable, $fKey) = explode(":", $relName);
@@ -240,21 +284,25 @@ class DataStruct extends DataStructBase {
         }
     }
     /**
+     * Create record and link it in global ->table property
      * 
-     * @param MiniLab\SelMap\Model\Table $tbl
-     * @return \MiniLab\SelMap\Data\Record
+     * @param Table $tbl
+     * @return Record
      */
-    protected function createRecord(Table $tbl) {
+    protected function createRecord(Table $tbl)
+    {
         $rec = new Record($tbl);
         $this->table[$tbl->name][] = $rec;
         return $rec;
     }
     /**
+     * Implode order in a string
      * 
      * @param array $selectOrder
      * @return string
      */
-    protected function orderPrepare(array $selectOrder) {
+    protected function orderPrepare(array $selectOrder)
+    {
         if (count($selectOrder) == 0) {
             return "";
         }
@@ -262,6 +310,7 @@ class DataStruct extends DataStructBase {
         return "ORDER BY " . implode(", ", $selectOrder);
     }
     /**
+     * Do preliminary select. Used in branched paged queries
      * 
      * @param array      $queryParts
      * @param Where|null $where
@@ -270,7 +319,8 @@ class DataStruct extends DataStructBase {
      * @param bool       $noSupply
      * @return null|Where
      */
-    protected function preliminarySelect(array $queryParts, $where, $order, $pageNo, $noSupply = false) {
+    protected function preliminarySelect(array $queryParts, $where, $order, $pageNo, $noSupply = false)
+    {
         $limit = "";
         if ($pageNo !== false) {
             $pageNo--;
@@ -286,20 +336,25 @@ class DataStruct extends DataStructBase {
         $query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `" . $this->map->root->aliasName . "`.`" . $pKey . "` " . $queryParts["from"] . $queryParts["join"] . $sqlWhere . " " . $order . " " . $limit;
         if ($result = $this->db->exec($query)) {
             $newWhere = $this->map->createWhere();
-            $or = $newWhere->addOrAnd("OR");//new OrAnd("OR", $this->db, $newWhere);
+            $or = $newWhere->addOrAnd("OR");
+            $notFound = true;
             while ($row = $result->fetch_assoc()) {
                 $or->addEqualCase($row[$pKey], new Path("@" . $pKey));
+                $notFound = false;
             }
-            if ($noSupply) {
-                //$where = "(" . substr($where, 6) . ")";
+            $result->free();
+            if($notFound){
+                $this->itemsCount = 0;
+                return null;
+            }
+            if($noSupply){
                 $and = new OrAnd("AND", $this->db, $where);
                 $and->addCase($or);
                 $and->addCase($where->root);
                 $newWhere->root = $and;
-            } else {
+            }else{
                 $newWhere->root = $or;
             }
-            $result->free();
         } else {
             return null;
         }
@@ -311,7 +366,8 @@ class DataStruct extends DataStructBase {
      * 
      * @param int $id Root table id
      */
-    public function selectById($id){
+    public function selectById($id)
+    {
         $pk = $this->map->root->table->pKeyField;
         $where = $this->map->createWhere()->addOrAnd()->addEqualCase($id, new Path("@" . $pk))->where;
         $this->select($where);
@@ -325,7 +381,8 @@ class DataStruct extends DataStructBase {
      * @param bool       $noSupply    Default 'false'
      * @return void
      */
-    public function select($where = null, $pageNo = false, $countResult = false, $noSupply = false) {
+    public function select($where = null, $pageNo = false, $countResult = false, $noSupply = false)
+    {
         $this->pagesCount = 0;
         $this->itemsCount = 0;
         $limit = "";
@@ -401,7 +458,11 @@ class DataStruct extends DataStructBase {
             //$this->row->rewind();
         }
     }
-    protected function selectFoundRows() {
+    /**
+     * Exec SELECT FOUND_ROWS() and fill ->itemsCount and ->pagesCount
+     */
+    protected function selectFoundRows()
+    {
         $query = "SELECT FOUND_ROWS();";
         $result = $this->db->exec($query);
         $row = $result->fetch_row();
@@ -409,7 +470,13 @@ class DataStruct extends DataStructBase {
         $this->pagesCount = ceil($this->itemsCount / $this->itemsPerPage);
         $result->free();
     }
-    protected function createSelObjects($cr) {
+    /**
+     * Set ->row property
+     * 
+     * @param array $cr
+     */
+    protected function createSelObjects($cr)
+    {
         foreach ($cr as $r) {
             $rootRowId = $r[$this->map->root->aliasName];
             if (!isset($this->row[$rootRowId])) {
@@ -418,7 +485,15 @@ class DataStruct extends DataStructBase {
             $this->eachNode($this->row[$rootRowId], $this->map->root, $r);
         }
     }
-    protected function eachNode(Record $parent, TableNode $mapNode, array $r) {
+    /**
+     * Set cell's ->rel properties. Connect Records in branches
+     * 
+     * @param Record    $parent
+     * @param TableNode $mapNode
+     * @param array $r
+     */
+    protected function eachNode(Record $parent, TableNode $mapNode, array $r)
+    {
         foreach ($mapNode->fields as $name => $field) {
             foreach ($field->rel as $relName => $sNode) {
                 list($tableName, $fName) = explode(":", $relName);
@@ -454,10 +529,14 @@ class DataStruct extends DataStructBase {
         }
     }
     /**
-     * (non-PHPdoc)
+     * Set one-to-many relatinon. Fill cell's ->rel propery from DB
+     * 
      * @see \MiniLab\SelMap\Data\Struct\DataStructInterface::setOneToManyRelation()
+     * @param int   $value In current version only integers may be primary keys and foreign keys
+     * @param Path  $path
      */
-    public function setOneToManyRelation($value, Path $path) {
+    public function setOneToManyRelation($value, Path $path)
+    {
         $relName = (string)$path->last();
         $aPath = $path->withoutLast();
         $c = $this->find($aPath);
@@ -489,7 +568,8 @@ class DataStruct extends DataStructBase {
      * @param array $newValues New foreign records
      * @param Path $path
      */
-    public function setManyToManyRelation(array $newValues, Path $path) {
+    public function setManyToManyRelation(array $newValues, Path $path)
+    {
         if ($records = & $this->find($path)) {
             $current = array_keys($records);
         } else {
@@ -552,10 +632,12 @@ class DataStruct extends DataStructBase {
         }
     }
     /**
-     * (non-PHPdoc)
+     * Save data. Exec UPDATE or INSERT query in records
+     * 
      * @see \MiniLab\SelMap\Data\Struct\DataStructBase::save()
      */
-    public function save() {
+    public function save()
+    {
         $tId = $this->db->startTransaction();
         foreach ($this->table as $tbl) {
             foreach ($tbl as $rec) {
