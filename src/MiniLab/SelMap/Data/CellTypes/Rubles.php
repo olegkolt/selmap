@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the SelMap package.
+ *
+ * (c) Oleg Koltunov <olegkolt@mail.ru>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MiniLab\SelMap\Data\CellTypes;
 
@@ -6,13 +14,25 @@ use Money\Money;
 use Money\Currency;
 use MiniLab\SelMap\DataBase;
 
+/**
+ * Cell type for Russion Rubles
+ * 
+ * @author Oleg Koltunov <olegkolt@mail.ru>
+ *
+ */
 class Rubles extends Cell
 {
+    /**
+     * To DB
+     * 
+     * @param Money    $value
+     * @param DataBase $db
+     * @throws \InvalidArgumentException
+     * @return Money
+     */
     public static function input($value, DataBase $db)
     {
-        //echo "input,";
         if(!($value instanceof Money)) {
-            var_dump($value);
             throw new \InvalidArgumentException("Field value must be Money");
         }
         if(! $value->getCurrency()->equals(new Currency("RUB"))) {
@@ -20,14 +40,38 @@ class Rubles extends Cell
         }
         return $value;
     }
+    /**
+     * From DB
+     * 
+     * @param string   $value
+     * @param DataBase $db
+     */
     public static function output($value, DataBase $db)
     {
         //echo "output,";
         return Money::RUB(Money::stringToUnits($value));
     }
+    /**
+     * Escape cell value
+     * 
+     * @see \MiniLab\SelMap\Data\CellTypes\Cell::escapeValue()
+     * @return string
+     */
     public function escapeValue()
     {
         return self::moneyToDBFormat($this->value);
+    }
+    /**
+     * Read money string
+     * 
+     * @param string $value
+     * @return Money
+     */
+    public static function stringToMoney($value)
+    {
+        $value = str_replace(",", ".", $value);
+        $value = str_replace(" ", "", $value);
+        return Money::RUB(intval(floatval($value) * 100));
     }
     /**
      * Transform to MySQL decimal type
@@ -39,10 +83,23 @@ class Rubles extends Cell
     {
         return static::splitMoney($money, ".");
     }
+    /**
+     * Transform to string. Delimiter - ","
+     * 
+     * @param Money $money
+     * @return string
+     */
     public static function moneyToString(Money $money)
     {
         return static::splitMoney($money, ",");
     }
+    /**
+     * Split to string
+     * 
+     * @param Money  $money
+     * @param string $delimiter
+     * @return string
+     */
     private static function splitMoney(Money $money, $delimiter)
     {
         $amount = (string)$money->getAmount();
