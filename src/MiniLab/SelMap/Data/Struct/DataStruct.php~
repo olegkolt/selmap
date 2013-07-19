@@ -398,7 +398,7 @@ class DataStruct extends DataStructBase
         }
         
         $order = $this->orderPrepare($queryParts["selectOrder"]);
-        if (!($pageNo === false && $countResult === false) && $queryParts["hasBranching"] && (!is_null($where) || $pageNo !== false)) {
+        if ($queryParts["hasBranching"] && (!is_null($where) || $pageNo !== false)) {
             $where = $this->preliminarySelect($queryParts, $where, $order, $pageNo, $noSupply);
             if ($this->itemsCount == 0) {
                 return;
