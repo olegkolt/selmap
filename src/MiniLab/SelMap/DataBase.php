@@ -99,7 +99,7 @@ class DataBase
      */
     public function getTable($tableName)
     {
-        if(isset($this->tables[$tableName])){
+        if (isset($this->tables[$tableName])) {
             return $this->tables[$tableName];
         }
         throw new \Exception("Table '" . $tableName . "' not found");
@@ -121,7 +121,7 @@ class DataBase
      */
     public function setTransactionsOption($option)
     {
-        if(is_bool($option)){
+        if (is_bool($option)) {
             $this->useTransactions = $option;
         }
     }

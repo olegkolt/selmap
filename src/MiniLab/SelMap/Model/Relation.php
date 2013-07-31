@@ -13,14 +13,16 @@ namespace MiniLab\SelMap\Model;
  * @property-read Relation $crossRel
  *
  */
-class Relation {
+class Relation
+{
     protected $table;
     protected $key;
     protected $fTable;
     protected $fKey;
     protected $inherite = false;
     protected $crossRel;
-    public function __construct(Table $table, $key, Table $fTable, $fKey) {
+    public function __construct(Table $table, $key, Table $fTable, $fKey)
+    {
         $this->table = $table;
         $this->key = $key;
         $this->fTable = $fTable;
@@ -30,8 +32,12 @@ class Relation {
      * Get relation type: one-to-one (false), one-to-many (true) or many-to-one (false)
      * @return bool
      */
-    public function isFTableArray() {
+    public function isFTableArray()
+    {
         if ($this->inherite) {
+            return false;
+        }
+        if (isset($this->crossRel) && $this->crossRel->inherite) {
             return false;
         }
         return $this->fTable->pKeyField != $this->fKey;
@@ -41,13 +47,15 @@ class Relation {
      * Set cross relation
      * @param Relation $rel
      */
-    public function setCrossRelation(Relation $rel) {
+    public function setCrossRelation(Relation $rel)
+    {
         $this->crossRel = $rel;
     }
     /**
      * @ignore
      */
-    public function __set($name, $value) {
+    public function __set($name, $value)
+    {
         if ($name == "inherite") {
             $this->inherite = (bool)$value;
         }
@@ -55,7 +63,8 @@ class Relation {
     /**
      * @ignore
      */
-    public function __get($name) {
+    public function __get($name)
+    {
         $props = array("inherite", "table", "fTable", "key", "fKey", "crossRel");
         if (in_array($name, $props)) {
             return $this->$name;

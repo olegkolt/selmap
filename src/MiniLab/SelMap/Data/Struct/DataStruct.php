@@ -105,7 +105,7 @@ class DataStruct extends DataStructBase
      */
     public function __set($name, $value)
     {
-        if ($name == "itemsPerPage" && is_numeric($value)){
+        if ($name == "itemsPerPage" && is_numeric($value)) {
             $this->itemsPerPage = (int)$value;
             return;
         }
@@ -133,32 +133,32 @@ class DataStruct extends DataStructBase
         //echo $path . "<br /";
         $rec = & $subject;
         foreach ($path as $el) {
-            if($el->getType() == PathNodeType::ARRAYTYPE) {
+            if ($el->getType() == PathNodeType::ARRAYTYPE) {
                 $el = (string)$el;
                 $next = $rec;
                 //unset($rec);
                 if ($el == "@@current") {
                     $next->rewind();
                     if (!($rec = $next->current())) {
-                    //if (!($rec = current($next))) {
+                        //if (!($rec = current($next))) {
                         $f = new EmptyCell();
                         return $f;
                     }
                 } else {
                     $m = trim($el, "[]");
                     $a = explode("=", $m);
-                    if(isset($a[1])) {
+                    if (isset($a[1])) {
                         list($fld, $val) = $a;
                         $val = trim($val, "'\"");
                         $f = false;
                         foreach ($next as $k => $r) {
-                            if($r[$fld]->value == $val) {
+                            if ($r[$fld]->value == $val) {
                                 $rec = $next[$k];
                                 $f = true;
                                 break;
                             }
                         }
-                        if(!$f) {
+                        if (!$f) {
                             $f = new EmptyCell();
                             return $f;
                         }
@@ -203,7 +203,7 @@ class DataStruct extends DataStructBase
             return $f;
         }
         $first = $path->first();
-        if($first->getType() != PathNodeType::ARRAYTYPE) {
+        if ($first->getType() != PathNodeType::ARRAYTYPE) {
             $newPath = new Path("@@current");
             $path = $newPath->add($path);
         }
@@ -225,7 +225,7 @@ class DataStruct extends DataStructBase
             throw new \Exception("Path not valid: " . $path);
         }
         $cell = $this->find($path);
-        if(!$cell->isEmpty()) {
+        if (!$cell->isEmpty()) {
             $rec = $cell->record;
             $rec[$field] = $value;
             return $rec[$field];
@@ -328,7 +328,7 @@ class DataStruct extends DataStructBase
             $limit = "LIMIT " . $start . ", " . $this->itemsPerPage;
         }
         $pKey = (string)$this->map->root->table->pKeyField;
-        if($where instanceof Where) {
+        if ($where instanceof Where) {
             $sqlWhere = "WHERE " . $where->getSQL();
         } else {
             $sqlWhere = "";
@@ -343,16 +343,16 @@ class DataStruct extends DataStructBase
                 $notFound = false;
             }
             $result->free();
-            if($notFound){
+            if ($notFound) {
                 $this->itemsCount = 0;
                 return null;
             }
-            if($noSupply){
+            if ($noSupply) {
                 $and = new OrAnd("AND", $this->db, $where);
                 $and->addCase($or);
                 $and->addCase($where->root);
                 $newWhere->root = $and;
-            }else{
+            } else {
                 $newWhere->root = $or;
             }
         } else {
@@ -393,7 +393,7 @@ class DataStruct extends DataStructBase
         if (!($where instanceof Where) && !is_null($where)) {
             throw new \InvalidArgumentException("\$where must be instance of 'Where' or null");
         }
-        if($pageNo !== false && $pageNo < 1) {
+        if ($pageNo !== false && $pageNo < 1) {
             throw new \InvalidArgumentException("\$pageNo must be greater than 0 or false");
         }
         
@@ -409,7 +409,7 @@ class DataStruct extends DataStructBase
             $start = $pageNo * $this->itemsPerPage;
             $limit = "LIMIT " . $start . ", " . $this->itemsPerPage;
         }
-        if($where instanceof Where) {
+        if ($where instanceof Where) {
             $where = "WHERE " . $where->getSQL();
         } else {
             $where = "";
@@ -516,7 +516,7 @@ class DataStruct extends DataStructBase
                         $id = $r[$sNode->aliasName];
                         if (isset($this->table[$tableName][$id])) {
                             $child = $this->table[$tableName][$id];
-                            if(!isset($parent[$name])) {
+                            if (!isset($parent[$name])) {
                                 $parent[$name] = $id;
                             }
                             $parent[$name]->addSingleRel($relName, $child);
@@ -594,7 +594,7 @@ class DataStruct extends DataStructBase
         if ($relation->table->name == $table) {
             $inField = $relation->inKey;
             $inFField = $relation->inFKey;
-        } else if ($relation->fTable->name == $table) {
+        } elseif ($relation->fTable->name == $table) {
             $inField = $relation->inFKey;
             $inFField = $relation->inKey;
         }

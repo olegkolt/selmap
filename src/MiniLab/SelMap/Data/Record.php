@@ -285,7 +285,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
             foreach ($v->rel as $relName => $fRec) {
                 list($tableName, $fKey) = explode(":", $relName);
                  
-                if(!isset($this->table->fields[$field]->rel[$relName])) {
+                if (!isset($this->table->fields[$field]->rel[$relName])) {
                     //throw new \Exception("Can not found relation '" . $relName . "' on table '" . $this->table->name . "' and field '" . $field . "'");
                     continue;
                     // обход бага в нескольких Multirecord на странице
