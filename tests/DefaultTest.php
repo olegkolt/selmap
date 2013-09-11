@@ -52,7 +52,7 @@ class DefaultTest extends SelMapConnectedTest
         $result["comment"] = $ds->find(new Path("@comment"))->value;
         $result["date"]    = $ds->find(new Path("@date"))->value;
         $result["rows"]    = array();
-        foreach($ds->find(new Path("@id/order_product:order")) as $r) {
+        foreach ($ds->find(new Path("@id/order_product:order")) as $r) {
             $row = array();
             $row["id"]     = DataStruct::search($r, new Path("@id"))->value;
             $row["number"] = DataStruct::search($r, new Path("@product/product:id/@number"))->value;
@@ -147,8 +147,8 @@ class DefaultTest extends SelMapConnectedTest
         $a["id"] = $id;
         $a["name"] = $node["name"]->value;
         $a["children"] = array();
-        if(isset($node["id"]->rel["category:parent"])) {
-            foreach($node["id"]->rel["category:parent"] as $id => $p) {
+        if (isset($node["id"]->rel["category:parent"])) {
+            foreach ($node["id"]->rel["category:parent"] as $id => $p) {
                 $a["children"][$id] = $this->printNode($id, $p);
             }
         }

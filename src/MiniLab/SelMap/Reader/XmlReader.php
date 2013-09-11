@@ -11,6 +11,7 @@ use MiniLab\SelMap\Path\Path;
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\Model\TreeTable;
 use MiniLab\SelMap\Model\Field;
+
 /**
  * XmlReader reads XML input data: schema, query map and where conditions
  * 
@@ -65,9 +66,9 @@ class XmlReader
                 if ($xField instanceof \DOMElement) {
                     $currentField = (string)$xField->getAttribute("Name");
                     $nullable = false;
-                    if($xField->hasAttribute("Null")) {
+                    if ($xField->hasAttribute("Null")) {
                         $attr = strtolower($xField->getAttribute("Null"));
-                        if($attr == "true") {
+                        if ($attr == "true") {
                             $nullable = true;
                         }
                     }
@@ -81,10 +82,10 @@ class XmlReader
                     }
                 }
             }
-            if(is_null($pKeyFieldName)){
+            if (is_null($pKeyFieldName)) {
                 throw new \Exception("No PK found for table '" . $tableName . "'");
             }
-            if(!is_null($treeKeyFieldName)) {
+            if (!is_null($treeKeyFieldName)) {
                 $table = new TreeTable($this->db, $tableName, $fields, $pKeyFieldName, $treeKeyFieldName);
             } else {
                 $table = new Table($this->db, $tableName, $fields, $pKeyFieldName);
@@ -166,7 +167,7 @@ class XmlReader
                 if ($xChild->hasAttribute("Name")) {
                     $name = $xChild->getAttribute("Name");
                     $nodeField = $currentNode->addField($name);
-                } else if ($xChild->hasAttribute("Alias") && $xChild->hasAttribute("Func")) {
+                } elseif ($xChild->hasAttribute("Alias") && $xChild->hasAttribute("Func")) {
                     $alias = $xChild->getAttribute("Alias");
                     $func = $xChild->getAttribute("Func");
                     $nodeField = $currentNode->addFuncField($alias, $func);
@@ -212,7 +213,7 @@ class XmlReader
     protected function readCase(\DOMNode $case, OrAnd $sCase)
     {
         $childs = $case->childNodes;
-        for ($i = 0;$i < $childs->length;$i++) {
+        for ($i = 0; $i < $childs->length; $i++) {
             if (!($childs->item($i) instanceof \DOMElement)) {
                 continue;
             }
@@ -222,10 +223,10 @@ class XmlReader
             } else {
                 $method = "add" . $child->tagName;
                 $path = new Path($child->getAttribute("Path"));
-                if($child->hasAttribute("Value")) {
+                if ($child->hasAttribute("Value")) {
                     $value = $child->getAttribute("Value");
                     $sCase->$method($value, $path);
-                } elseif($child->hasAttribute("ContrPath")){
+                } elseif ($child->hasAttribute("ContrPath")) {
                     $contrPath = new Path($child->getAttribute("ContrPath"));
                     $sCase->$method($path, $contrPath);
                 } else {
