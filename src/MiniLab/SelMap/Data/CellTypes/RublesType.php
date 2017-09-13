@@ -20,7 +20,7 @@ use MiniLab\SelMap\DataBase;
  * @author Oleg Koltunov <olegkolt@mail.ru>
  *
  */
-class RublesType extends Cell
+class RublesType extends CellType
 {
     /**
      * To DB
@@ -54,7 +54,7 @@ class RublesType extends Cell
     /**
      * Escape cell value
      * 
-     * @see \MiniLab\SelMap\Data\CellTypes\Cell::escapeValue()
+     * @see \MiniLab\SelMap\Data\CellTypes\CellType::escapeValue()
      * @return string
      */
     public function escapeValue()

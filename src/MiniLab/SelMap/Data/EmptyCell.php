@@ -2,9 +2,9 @@
 
 namespace MiniLab\SelMap\Data;
 
-use MiniLab\SelMap\Data\CellTypes\Cell;
+use MiniLab\SelMap\Data\CellTypes\CellType;
 
-class EmptyCell extends Cell
+class EmptyCell extends CellType
 {
     public function __construct() {
     }

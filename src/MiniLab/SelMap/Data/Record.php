@@ -4,7 +4,7 @@ namespace MiniLab\SelMap\Data;
 
 use MiniLab\SelMap\Model\Table;
 use MiniLab\SelMap\DataBase;
-use MiniLab\SelMap\Data\CellTypes\Cell;
+use MiniLab\SelMap\Data\CellTypes\CellType;
 use MiniLab\SelMap\Model\Relation;
 
 /**
@@ -135,7 +135,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
      * @param string $value
      * @param string $fieldName
      * @param bool   $isFromDB
-     * @return Cell
+     * @return CellType
      */
     protected function createCell($value, $fieldName, $isFromDB = false)
     {
@@ -153,7 +153,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
         if (is_null($offset)) {
             throw new \Exception("Field name not valid");
         }
-        if ($value instanceof Cell) {
+        if ($value instanceof CellType) {
             if($value->record->table->name == $this->table->name &&
                     $offset == $value->fieldName) {
                 $this->cell[$offset] = $value;
@@ -249,7 +249,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     /**
      * Save current row
      * 
-     * @return Cell row PK
+     * @return CellType row PK
      */
     public function save() {
         //echo "Save:" . $this->table->name . ", ";
@@ -274,7 +274,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     /**
      * Insert current row
      * 
-     * @return Cell inserted id
+     * @return CellType inserted id
      */
     public function insert()
     {

@@ -18,7 +18,7 @@ use MiniLab\SelMap\DataBase;
  * @property-read Field  $field
  * @property      string $value  The value of Cell
  */
-class Cell implements \JsonSerializable, DataInterface, CellInterface
+class CellType implements \JsonSerializable, DataInterface, CellInterface
 {
     /**
      * @var mixed

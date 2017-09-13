@@ -4,7 +4,7 @@ namespace MiniLab\SelMap\Data\CellTypes;
 
 use MiniLab\SelMap\DataBase;
 
-class StringType extends Cell
+class StringType extends CellType
 {
     public static function input($value, DataBase $db)
     {
