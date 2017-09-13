@@ -5,12 +5,12 @@ namespace MiniLab\SelMap\Data\CellTypes;
 use MiniLab\SelMap\Data\Record;
 use MiniLab\SelMap\Model\Field;
 
-class Balance extends Rubles
+class BalanceType extends RublesType
 {
     /**
      * Initial money value
      * 
-     * @var Money\Money
+     * @var \Money\Money
      */
     protected $initialValue;
     /**
@@ -25,12 +25,12 @@ class Balance extends Rubles
         if($isFromDB === false) {
             $value = 0;
         }
-        $this->initialValue = Rubles::output($value, $this->db);
+        $this->initialValue = RublesType::output($value, $this->db);
     }
     public function getUpdateSql()
     {
         $diff = $this->value->subtract($this->initialValue);
-        $diff = Rubles::moneyToDBFormat($diff);
+        $diff = RublesType::moneyToDBFormat($diff);
         return "`" . $this->field->name . "` = `" . $this->fieldName . "` + '" . $diff . "'";
     }
 }

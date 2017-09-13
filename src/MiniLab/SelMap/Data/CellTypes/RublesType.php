@@ -20,7 +20,7 @@ use MiniLab\SelMap\DataBase;
  * @author Oleg Koltunov <olegkolt@mail.ru>
  *
  */
-class Rubles extends Cell
+class RublesType extends Cell
 {
     /**
      * To DB

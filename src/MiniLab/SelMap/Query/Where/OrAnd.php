@@ -283,7 +283,7 @@ class OrAnd
             throw new \Exception("Field not found");
         }
         $tableField = $tableFields[$fieldName];
-        $type = DataBase::CELL_TYPES_NAMESPACE . $tableField->type;
+        $type = DataBase::buildCellTypeClassName($tableField->type);
         $value = $type::validateInput($value, $tableField, $this->db);
         return $this->db->getConn()->real_escape_string($value);
     }

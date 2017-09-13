@@ -5,7 +5,7 @@ namespace MiniLab\SelMap\Data\CellTypes;
 use DateTime as DT;
 use MiniLab\SelMap\DataBase;
 
-class DateTime extends Cell
+class DateTimeType extends Cell
 {
     public static function input($value, DataBase $db)
     {

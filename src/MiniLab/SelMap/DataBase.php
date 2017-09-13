@@ -67,9 +67,15 @@ class DataBase
      * @var string
      */
     const CELL_TYPES_NAMESPACE = "MiniLab\\SelMap\\Data\\CellTypes\\";
+
+    public static function buildCellTypeClassName($className)
+    {
+        return self::CELL_TYPES_NAMESPACE . $className . 'Type';
+    }
+
     /**
      * Character encoding
-     * 
+     *
      * @var string
      */
     const ENCODING = "utf8";

@@ -5,3 +5,4 @@ docs
 .buildpath
 selmap.php
 composer.lock
+.idea

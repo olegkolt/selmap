@@ -56,7 +56,7 @@ class Field implements \JsonSerializable
     /**
      * Set field type
      * 
-     * @param string $type Type name from namespace MiniLab\SelMap\Data\CellTypes (String, Int, etc.)
+     * @param string $type Type name from namespace MiniLab\SelMap\Data\CellTypes (StringType, Int, etc.)
      */
     public function setType($type)
     {

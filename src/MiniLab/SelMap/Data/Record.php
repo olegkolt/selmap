@@ -140,7 +140,7 @@ class Record implements \ArrayAccess, \Iterator, \JsonSerializable, DataInterfac
     protected function createCell($value, $fieldName, $isFromDB = false)
     {
         $field = $this->table->fields[$fieldName];
-        $type = DataBase::CELL_TYPES_NAMESPACE . $field->type;
+        $type = DataBase::buildCellTypeClassName($field->type);
         //echo "create " . $type; 
         return new $type($value, $this, $field, $isFromDB);
     }

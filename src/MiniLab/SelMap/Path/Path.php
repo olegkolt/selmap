@@ -18,7 +18,7 @@ class Path implements \Iterator{
     /**
      *
      * Create a Path object
-     * @param mixed $path String or array
+     * @param mixed $path StringType or array
     */
     public function __construct($path) {
         $this->position = 0;
@@ -56,7 +56,7 @@ class Path implements \Iterator{
     }
     /**
      * Get path string
-     * @return string String path representation
+     * @return string StringType path representation
      */
     public function __toString() {
         return implode("/", $this->elements);
