@@ -10,9 +10,13 @@
 
 namespace MiniLab\SelMap\Data\CellTypes;
 
+use MiniLab\SelMap\Data\Record;
+use MiniLab\SelMap\Model\Field;
 use Money\Money;
 use Money\Currency;
 use MiniLab\SelMap\DataBase;
+use Money\Currencies\ISOCurrencies;
+use Money\Parser\DecimalMoneyParser;
 
 /**
  * Cell type for Russion Rubles
@@ -22,6 +26,16 @@ use MiniLab\SelMap\DataBase;
  */
 class RublesType extends CellType
 {
+    private static $moneyParser;
+
+    private static function getMoneyParser()
+    {
+        if (is_null(self::$moneyParser)) {
+            self::$moneyParser = new DecimalMoneyParser(new ISOCurrencies());
+        }
+        return self::$moneyParser;
+    }
+
     /**
      * To DB
      * 
@@ -46,9 +60,9 @@ class RublesType extends CellType
      * @param string   $value
      * @param DataBase $db
      */
-    public static function output($value, DataBase $db)
+    public static function output(string $value, DataBase $db)
     {
-        return Money::RUB(Money::stringToUnits($value));
+        return self::getMoneyParser()->parse($value, 'RUB');
     }
     /**
      * Escape cell value

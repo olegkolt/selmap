@@ -186,7 +186,7 @@ class CellType implements \JsonSerializable, DataInterface, CellInterface
     {
         return $value;
     }
-    public static function output($value, DataBase $db)
+    public static function output(string $value, DataBase $db)
     {
         return $value;
     }
