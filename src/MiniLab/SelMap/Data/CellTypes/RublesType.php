@@ -48,7 +48,6 @@ class RublesType extends CellType
      */
     public static function output($value, DataBase $db)
     {
-        //echo "output,";
         return Money::RUB(Money::stringToUnits($value));
     }
     /**

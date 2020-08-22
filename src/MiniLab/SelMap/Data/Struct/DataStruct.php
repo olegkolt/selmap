@@ -333,7 +333,21 @@ class DataStruct extends DataStructBase
         } else {
             $sqlWhere = "";
         }
-        $query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `" . $this->map->root->aliasName . "`.`" . $pKey . "` " . $queryParts["from"] . $queryParts["join"] . $sqlWhere . " " . $order . " " . $limit;
+
+        $orderArgs = [];
+        foreach ($queryParts['selectOrder'] as $orderPart) {
+            $orderArgs[] = explode(' ', $orderPart)[0];
+        }
+
+        $orderFields = '';
+        if (count($orderArgs) > 0) {
+            $orderFields = ', ' . implode(', ', $orderArgs);
+        }
+
+        $query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `"
+            . $this->map->root->aliasName . "`.`" . $pKey . "` " . $orderFields . " "
+            . $queryParts["from"] . $queryParts["join"] . $sqlWhere . " " . $order . " " . $limit;
+
         if ($result = $this->db->exec($query)) {
             $newWhere = $this->map->createWhere();
             $or = $newWhere->addOrAnd("OR");
@@ -396,7 +410,6 @@ class DataStruct extends DataStructBase
         if ($pageNo !== false && $pageNo < 1) {
             throw new \InvalidArgumentException("\$pageNo must be greater than 0 or false");
         }
-        
         $order = $this->orderPrepare($queryParts["selectOrder"]);
         if (!($pageNo === false && $countResult === false) && $queryParts["hasBranching"] && (!is_null($where) || $pageNo !== false)) {
             $where = $this->preliminarySelect($queryParts, $where, $order, $pageNo, $noSupply);
